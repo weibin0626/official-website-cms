@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CMS 后台管理系统</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="cms-data.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; }
+    .sidebar { width: 220px; min-height: 100vh; }
+    .sidebar-item:hover, .sidebar-item.active { background: rgba(255,255,255,0.12); }
+    .toast-anim { animation: toastIn 0.3s ease; }
+    @keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.15); }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+    .stat-card { transition: all 0.2s; }
+    .modal-bg { background: rgba(0,0,0,0.45); }
+  </style>
+</head>
+<body class="bg-gray-100">
+
+<div id="toastBox" class="fixed top-4 right-4 z-[9999] flex flex-col gap-2"></div>
+
+<div id="modal" class="fixed inset-0 z-50 hidden items-center justify-center">
+  <div class="modal-bg absolute inset-0" onclick="closeModal()"></div>
+  <div class="relative bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[85vh] overflow-y-auto" id="modalBody"></div>
+</div>
+
+<!-- 登录页 -->
+<div id="loginPage" class="min-h-screen flex items-center justify-center" style="background: linear-gradient(135deg, #1a3a6b 0%, #2d5a9b 100%);">
+  <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4">
+    <div class="text-center mb-8">
+      <div class="w-16 h-16 bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fa-solid fa-shield-halved text-white text-2xl"></i></div>
+      <h1 class="text-2xl font-bold text-gray-800">CMS 后台管理</h1>
+      <p class="text-sm text-gray-500 mt-1">多站点内容管理系统</p>
+    </div>
+    <div id="loginErr" class="hidden bg-red-50 text-red-600 text-sm p-3 rounded-lg mb-4"></div>
+    <div class="mb-4"><label class="block text-sm font-medium text-gray-700 mb-1">用户名</label><input id="loginUser" type="text" value="admin" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm"></div>
+    <div class="mb-6"><label class="block text-sm font-medium text-gray-700 mb-1">密码</label><input id="loginPass" type="password" value="admin123" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button onclick="doLogin()" class="w-full bg-blue-900 text-white py-3 rounded-lg font-medium hover:bg-blue-800 transition">登 录</button>
+    <p class="text-xs text-gray-400 text-center mt-4">默认账号: admin / admin123</p>
+  </div>
+</div>
+
+<!-- 主界面 -->
+<div id="mainApp" class="hidden min-h-screen flex">
+  <aside class="sidebar bg-gray-900 text-white flex-shrink-0 fixed left-0 top-0 bottom-0 z-40 overflow-y-auto">
+    <div class="p-4 border-b border-gray-700 flex items-center gap-2"><i class="fa-solid fa-shield-halved text-blue-400"></i><span class="font-bold text-lg">CMS 管理</span></div>
+    <nav class="py-2" id="sideNav">
+      <div class="sidebar-item active px-4 py-3 cursor-pointer flex items-center gap-3 text-sm" data-page="dashboard"><i class="fa-solid fa-gauge w-5 text-center"></i>仪表盘</div>
+      <div class="sidebar-item px-4 py-3 cursor-pointer flex items-center gap-3 text-sm" data-page="sites"><i class="fa-solid fa-globe w-5 text-center"></i>站点管理</div>
+      <div class="sidebar-item px-4 py-3 cursor-pointer flex items-center gap-3 text-sm" data-page="config"><i class="fa-solid fa-gear w-5 text-center"></i>基本配置</div>
+      <div class="sidebar-item px-4 py-3 cursor-pointer flex items-center gap-3 text-sm" data-page="nav"><i class="fa-solid fa-sitemap w-5 text-center"></i>导航管理</div>
+      <div class="sidebar-item px-4 py-3 cursor-pointer flex items-center gap-3 text-sm" data-page="content"><i class="fa-solid fa-newspaper w-5 text-center"></i>内容管理</div>
+      <div class="sidebar-item px-4 py-3 cursor-pointer flex items-center gap-3 text-sm" data-page="banners"><i class="fa-solid fa-images w-5 text-center"></i>轮播图管理</div>
+      <div class="sidebar-item px-4 py-3 cursor-pointer flex items-center gap-3 text-sm" data-page="quicklinks"><i class="fa-solid fa-link w-5 text-center"></i>快捷入口</div>
+      <div class="sidebar-item px-4 py-3 cursor-pointer flex items-center gap-3 text-sm" data-page="friendlinks"><i class="fa-solid fa-handshake w-5 text-center"></i>友情链接</div>
+      <div class="sidebar-item px-4 py-3 cursor-pointer flex items-center gap-3 text-sm" data-page="leaders"><i class="fa-solid fa-user-tie w-5 text-center"></i>领导介绍</div>
+      <div class="sidebar-item px-4 py-3 cursor-pointer flex items-center gap-3 text-sm" data-page="teachers"><i class="fa-solid fa-chalkboard-user w-5 text-center"></i>师资管理</div>
+      <div class="sidebar-item px-4 py-3 cursor-pointer flex items-center gap-3 text-sm" data-page="users"><i class="fa-solid fa-users-gear w-5 text-center"></i>用户管理</div>
+    </nav>
+  </aside>
+  <div class="flex-1 ml-[220px]">
+    <header class="bg-white shadow-sm px-6 py-3 flex items-center justify-between sticky top-0 z-30">
+      <div class="flex items-center gap-3"><span class="text-lg font-bold text-gray-800" id="pageTitle">仪表盘</span><span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full" id="siteBadge"></span></div>
+      <div class="flex items-center gap-4"><a href="index.html" target="_blank" class="text-sm text-blue-600 hover:underline"><i class="fa-solid fa-external-link-alt mr-1"></i>查看前台</a><div class="w-8 h-8 bg-blue-900 rounded-full flex items-center justify-center text-white text-xs font-bold">A</div><button onclick="doLogout()" class="text-sm text-gray-500 hover:text-red-500"><i class="fa-solid fa-right-from-bracket"></i></button></div>
+    </header>
+    <main class="p-6" id="pageContent"></main>
+  </div>
+</div>
+
+<script>
+var curPage = 'dashboard';
+
+// ===== Login =====
+function doLogin() {
+  var u = document.getElementById('loginUser').value.trim();
+  var p = document.getElementById('loginPass').value.trim();
+  if (!u || !p) { showLE('请输入用户名和密码'); return; }
+  var data = getCMSData();
+  var found = null;
+  for (var i = 0; i < data.users.length; i++) {
+    if (data.users[i].username === u && data.users[i].password === p && data.users[i].status === 'active') {
+      found = data.users[i]; break;
+    }
+  }
+  if (found) {
+    document.getElementById('loginPage').classList.add('hidden');
+    document.getElementById('mainApp').classList.remove('hidden');
+    document.getElementById('mainApp').classList.add('flex');
+    goPage('dashboard');
+  } else {
+    showLE('用户名或密码错误');
+  }
+}
+function showLE(m) { var e = document.getElementById('loginErr'); e.textContent = m; e.classList.remove('hidden'); }
+function doLogout() { document.getElementById('mainApp').classList.add('hidden'); document.getElementById('mainApp').classList.remove('flex'); document.getElementById('loginPage').classList.remove('hidden'); }
+
+// ===== Toast =====
+function toast(msg, type) {
+  type = type || 'success';
+  var cs = { success:'bg-green-500', error:'bg-red-500', warning:'bg-yellow-500', info:'bg-blue-500' };
+  var ic = { success:'fa-check-circle', error:'fa-times-circle', warning:'fa-exclamation-triangle', info:'fa-info-circle' };
+  var el = document.createElement('div');
+  el.className = 'toast-anim ' + (cs[type]||cs.success) + ' text-white px-5 py-3 rounded-lg shadow-lg flex items-center gap-2 text-sm';
+  el.innerHTML = '<i class="fa-solid ' + (ic[type]||ic.success) + '"></i> ' + msg;
+  document.getElementById('toastBox').appendChild(el);
+  setTimeout(function() { el.remove(); }, 3000);
+}
+
+// ===== Modal =====
+function openModal(html) { document.getElementById('modalBody').innerHTML = html; document.getElementById('modal').classList.remove('hidden'); document.getElementById('modal').classList.add('flex'); }
+function closeModal() { document.getElementById('modal').classList.add('hidden'); document.getElementById('modal').classList.remove('flex'); }
+
+// ===== Nav =====
+function goPage(page) {
+  curPage = page;
+  document.querySelectorAll('.sidebar-item').forEach(function(el) { el.classList.toggle('active', el.dataset.page === page); });
+  var t = { dashboard:'仪表盘', sites:'站点管理', config:'基本配置', nav:'导航管理', content:'内容管理', banners:'轮播图管理', quicklinks:'快捷入口', friendlinks:'友情链接', leaders:'领导介绍', teachers:'师资管理', users:'用户管理' };
+  document.getElementById('pageTitle').textContent = t[page] || page;
+  renderPage(page);
+}
+document.getElementById('sideNav').addEventListener('click', function(e) { var item = e.target.closest('.sidebar-item'); if (item && item.dataset.page) goPage(item.dataset.page); });
+
+// ===== Helpers =====
+function getSite() { var d = getCMSData(), sid = getCurrentSiteId(); for (var i=0;i<d.sites.length;i++) { if (d.sites[i].id===sid) return d.sites[i]; } return d.sites[0]; }
+function saveSite(site) { var d = getCMSData(); for (var i=0;i<d.sites.length;i++) { if (d.sites[i].id===site.id) { d.sites[i]=site; break; } } saveCMSData(d); updateBadge(); }
+function updateBadge() { var s = getSite(); document.getElementById('siteBadge').textContent = s ? s.name : ''; }
+function fInput(label, id, val) { return '<div><label class="block text-sm font-medium text-gray-700 mb-1">' + label + '</label><input id="' + id + '" class="w-full border rounded-lg px-3 py-2 text-sm" value="' + (val||'') + '"></div>'; }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ===== Page Router =====
+function renderPage(page) {
+  updateBadge();
+  var c = document.getElementById('pageContent');
+  var fn = pages[page];
+  c.innerHTML = fn ? fn() : '<p class="text-gray-500">页面开发中</p>';
+}
+
+var pages = {};
+
+// ===== Dashboard =====
+pages.dashboard = function() {
+  var site = getSite(), data = getCMSData(), st = site.stats || {};
+  return '<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">' +
+    sCard('文章总数', (site.news||[]).length, 'border-blue-500', '本月+3') +
+    sCard('访问量', (st.visits||0).toLocaleString(), 'border-green-500', '↑12%') +
+    sCard('站点数', data.sites.length, 'border-purple-500', '多法人管理') +
+    sCard('用户数', data.users.length, 'border-orange-500', '↑8%') +
+    '</div><div class="grid lg:grid-cols-2 gap-6">' +
+    '<div class="bg-white rounded-xl p-6 shadow-sm"><h3 class="font-bold text-gray-800 mb-4">最新文章</h3>' + listItems(site.news, 'title', 'date') + '</div>' +
+    '<div class="bg-white rounded-xl p-6 shadow-sm"><h3 class="font-bold text-gray-800 mb-4">最新公告</h3>' + listItems(site.announcements, 'title', 'date') + '</div></div>';
+};
+function sCard(label, val, border, sub) {
+  return '<div class="stat-card bg-white rounded-xl p-6 shadow-sm border-l-4 ' + border + '"><div class="text-sm text-gray-500">' + label + '</div><div class="text-3xl font-bold text-gray-800 mt-1">' + val + '</div><div class="text-xs text-green-500 mt-2">' + sub + '</div></div>';
+}
+function listItems(arr, titleKey, dateKey) {
+  return (arr||[]).slice(0,5).map(function(n) {
+    return '<div class="flex justify-between py-2 border-b border-gray-100 last:border-0"><span class="text-sm text-gray-700 truncate flex-1">' + esc(n[titleKey]) + '</span><span class="text-xs text-gray-400 ml-2">' + esc(n[dateKey]) + '</span></div>';
+  }).join('');
+}
+
+// ===== Sites =====
+pages.sites = function() {
+  var data = getCMSData(), cid = getCurrentSiteId();
+  return '<div class="flex justify-between items-center mb-6"><p class="text-sm text-gray-500">管理多法人/多站点，切换后所有配置切换到该站点</p><button onclick="addSiteM()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700"><i class="fa-solid fa-plus mr-1"></i>新增站点</button></div>' +
+    '<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">' + data.sites.map(function(s) {
+      return '<div class="bg-white rounded-xl p-6 shadow-sm border-2 ' + (s.id===cid?'border-blue-500':'border-transparent') + ' hover:border-blue-300 transition"><div class="flex items-center gap-3 mb-4"><div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" style="background:'+s.primaryColor+'">'+s.name[0]+'</div><div><h3 class="font-bold text-gray-800">'+esc(s.name)+'</h3><p class="text-xs text-gray-400">'+s.id+'</p></div>' + (s.id===cid?'<span class="ml-auto text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">当前</span>':'') + '</div><div class="text-sm text-gray-600 space-y-1 mb-4"><p><i class="fa-solid fa-phone w-4 text-gray-400"></i> '+esc(s.phone)+'</p><p><i class="fa-solid fa-location-dot w-4 text-gray-400"></i> '+esc(s.address)+'</p></div><div class="flex gap-2"><button onclick="swSite(\''+s.id+'\')" class="text-xs px-3 py-1 rounded '+(s.id===cid?'bg-blue-100 text-blue-700':'bg-gray-100 text-gray-600 hover:bg-gray-200')+'">切换</button><button onclick="dlSite(\''+s.id+'\')" class="text-xs px-3 py-1 rounded bg-red-50 text-red-600 hover:bg-red-100">删除</button></div></div>';
+    }).join('') + '</div>';
+};
+function swSite(id) { setCurrentSiteId(id); toast('已切换到: ' + getSite().name); renderPage(curPage); }
+function dlSite(id) { if(!confirm('确定删除？'))return; var d=getCMSData(); if(d.sites.length<=1){toast('至少保留一个站点','warning');return;} d.sites=d.sites.filter(function(s){return s.id!==id;}); if(getCurrentSiteId()===id) setCurrentSiteId(d.sites[0].id); saveCMSData(d); toast('已删除'); renderPage('sites'); }
+function addSiteM() {
+  openModal('<div class="p-6"><h2 class="text-xl font-bold mb-6">新增站点</h2><div class="space-y-4">' +
+    fInput('站点名称','m_sn','') + fInput('英文名称','m_sne','') + fInput('联系电话','m_sp','') + fInput('邮箱','m_se','') + fInput('地址','m_sa','') + fInput('备案号','m_sicp','') +
+    '<div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-gray-700 mb-1">主色调</label><input id="m_sc1" type="color" value="#1a3a6b" class="w-full h-10 border rounded cursor-pointer"></div><div><label class="block text-sm font-medium text-gray-700 mb-1">副色调</label><input id="m_sc2" type="color" value="#c8a45c" class="w-full h-10 border rounded cursor-pointer"></div></div>' +
+    '<div><label class="block text-sm font-medium text-gray-700 mb-1">简介</label><textarea id="m_sd" class="w-full border rounded-lg px-3 py-2 text-sm" rows="3"></textarea></div>' +
+    '</div><div class="flex justify-end gap-3 mt-6"><button onclick="closeModal()" class="px-4 py-2 border rounded-lg text-sm">取消</button><button onclick="doAddSite()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">创建</button></div></div>');
+}
+function doAddSite() {
+  var n = document.getElementById('m_sn').value.trim(); if(!n){toast('请输入站点名称','warning');return;}
+  var s = { id:'site_'+Date.now(), name:n, nameEn:document.getElementById('m_sne').value.trim()||n, logo:'https://cdn-icons-png.flaticon.com/512/2995/2995459.png', phone:document.getElementById('m_sp').value.trim()||'000-0000-0000', email:document.getElementById('m_se').value.trim()||'', address:document.getElementById('m_sa').value.trim()||'', icp:document.getElementById('m_sicp').value.trim()||'', police:'', primaryColor:document.getElementById('m_sc1').value, secondaryColor:document.getElementById('m_sc2').value, description:document.getElementById('m_sd').value.trim()||'', navItems:[{id:'nav_1',name:'首页',link:'#home',children:[]},{id:'nav_2',name:'关于我们',link:'#about',children:[]},{id:'nav_3',name:'联系我们',link:'#contact',children:[]}], banners:[], quickLinks:[], news:[], announcements:[], leaders:[], teachers:[], friendLinks:[], stats:{visits:0,articles:0,users:0} };
+  var d=getCMSData(); d.sites.push(s); saveCMSData(d); closeModal(); toast('站点创建成功'); renderPage('sites');
+}
+
+// ===== Config =====
+pages.config = function() {
+  var s = getSite();
+  return '<div class="bg-white rounded-xl p-6 shadow-sm max-w-3xl"><h2 class="text-lg font-bold mb-6">站点基本配置</h2><div class="space-y-5">' +
+    fInput('站点名称','cfg_name',s.name) + fInput('英文名称','cfg_nameEn',s.nameEn) + fInput('Logo URL','cfg_logo',s.logo) + fInput('联系电话','cfg_phone',s.phone) + fInput('邮箱','cfg_email',s.email) + fInput('地址','cfg_addr',s.address) + fInput('备案号','cfg_icp',s.icp) + fInput('公安备案','cfg_police',s.police) +
+    '<div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-gray-700 mb-1">主色调</label><input id="cfg_c1" type="color" value="'+s.primaryColor+'" class="w-full h-10 border rounded cursor-pointer"></div><div><label class="block text-sm font-medium text-gray-700 mb-1">副色调</label><input id="cfg_c2" type="color" value="'+(s.secondaryColor||'#c8a45c')+'" class="w-full h-10 border rounded cursor-pointer"></div></div>' +
+    '<div><label class="block text-sm font-medium text-gray-700 mb-1">网站简介</label><textarea id="cfg_desc" class="w-full border rounded-lg px-3 py-2 text-sm" rows="4">'+esc(s.description)+'</textarea></div>' +
+    '</div><div class="mt-6 flex justify-end"><button onclick="saveCfg()" class="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"><i class="fa-solid fa-floppy-disk mr-1"></i>保存配置</button></div></div>';
+};
+function saveCfg() {
+  var s=getSite();
+  s.name=document.getElementById('cfg_name').value.trim()||s.name; s.nameEn=document.getElementById('cfg_nameEn').value.trim();
+  s.logo=document.getElementById('cfg_logo').value.trim(); s.phone=document.getElementById('cfg_phone').value.trim();
+  s.email=document.getElementById('cfg_email').value.trim(); s.address=document.getElementById('cfg_addr').value.trim();
+  s.icp=document.getElementById('cfg_icp').value.trim(); s.police=document.getElementById('cfg_police').value.trim();
+  s.primaryColor=document.getElementById('cfg_c1').value; s.secondaryColor=document.getElementById('cfg_c2').value;
+  s.description=document.getElementById('cfg_desc').value.trim(); saveSite(s); toast('配置保存成功');
+}
+
+// ===== Nav =====
+pages.nav = function() {
+  var s=getSite(), items=s.navItems||[];
+  return '<div class="bg-white rounded-xl shadow-sm p-6"><div class="flex justify-between items-center mb-6"><h2 class="text-lg font-bold">导航菜单管理</h2><button onclick="addNavI()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700"><i class="fa-solid fa-plus mr-1"></i>添加一级菜单</button></div>' +
+    items.map(function(item,i) {
+      return '<div class="mb-4 border rounded-lg p-4"><div class="flex items-center gap-3 mb-3"><span class="text-sm font-bold text-gray-700 w-6">'+(i+1)+'</span><input value="'+esc(item.name)+'" onchange="updNI('+i+',\'name\',this.value)" class="border rounded px-3 py-1.5 text-sm flex-1" placeholder="菜单名称"><input value="'+esc(item.link)+'" onchange="updNI('+i+',\'link\',this.value)" class="border rounded px-3 py-1.5 text-sm w-40" placeholder="链接"><button onclick="delNI('+i+')" class="text-red-500 hover:text-red-700 text-sm"><i class="fa-solid fa-trash"></i></button></div><div class="ml-8 space-y-2">' +
+      (item.children||[]).map(function(ch,j) { return '<div class="flex items-center gap-2"><span class="text-xs text-gray-400">└</span><input value="'+esc(ch.name)+'" onchange="updNS('+i+','+j+',\'name\',this.value)" class="border rounded px-2 py-1 text-sm flex-1" placeholder="子菜单名"><input value="'+esc(ch.link)+'" onchange="updNS('+i+','+j+',\'link\',this.value)" class="border rounded px-2 py-1 text-sm w-32" placeholder="链接"><button onclick="delNS('+i+','+j+')" class="text-red-400 hover:text-red-600 text-xs"><i class="fa-solid fa-times"></i></button></div>'; }).join('') +
+      '<button onclick="addNS('+i+')" class="text-xs text-blue-600 hover:underline mt-1"><i class="fa-solid fa-plus mr-1"></i>添加子菜单</button></div></div>';
+    }).join('') + '</div>';
+};
+function addNavI() { var s=getSite(); if(!s.navItems) s.navItems=[]; s.navItems.push({id:'nav_'+Date.now(),name:'新菜单',link:'#',children:[]}); saveSite(s); toast('已添加'); renderPage('nav'); }
+function updNI(i,k,v) { var s=getSite(); s.navItems[i][k]=v; saveSite(s); }
+function delNI(i) { if(!confirm('确定删除？'))return; var s=getSite(); s.navItems.splice(i,1); saveSite(s); toast('已删除'); renderPage('nav'); }
+function addNS(i) { var s=getSite(); if(!s.navItems[i].children) s.navItems[i].children=[]; s.navItems[i].children.push({id:'nav_'+Date.now(),name:'子菜单',link:'#'}); saveSite(s); toast('已添加'); renderPage('nav'); }
+function updNS(i,j,k,v) { var s=getSite(); s.navItems[i].children[j][k]=v; saveSite(s); }
+function delNS(i,j) { var s=getSite(); s.navItems[i].children.splice(j,1); saveSite(s); toast('已删除'); renderPage('nav'); }
+
+// ===== Content =====
+pages.content = function() {
+  var s=getSite(), news=s.news||[];
+  return '<div class="bg-white rounded-xl shadow-sm p-6"><div class="flex justify-between items-center mb-6"><h2 class="text-lg font-bold">内容管理</h2><button onclick="addCM()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700"><i class="fa-solid fa-plus mr-1"></i>新增文章</button></div><div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="bg-gray-50 text-left"><th class="px-4 py-3 font-medium text-gray-600">标题</th><th class="px-4 py-3 font-medium text-gray-600">分类</th><th class="px-4 py-3 font-medium text-gray-600">日期</th><th class="px-4 py-3 font-medium text-gray-600">状态</th><th class="px-4 py-3 font-medium text-gray-600">操作</th></tr></thead><tbody>' +
+    news.map(function(n,i) { return '<tr class="border-b border-gray-100 hover:bg-gray-50"><td class="px-4 py-3 max-w-xs truncate">'+esc(n.title)+'</td><td class="px-4 py-3">'+esc(n.category||'-')+'</td><td class="px-4 py-3">'+esc(n.date)+'</td><td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs '+(n.status==='published'?'bg-green-100 text-green-700':'bg-gray-100 text-gray-500')+'">'+(n.status==='published'?'已发布':'草稿')+'</span></td><td class="px-4 py-3 flex gap-2"><button onclick="togCS('+i+')" class="text-xs text-blue-600 hover:underline">'+(n.status==='published'?'取消发布':'发布')+'</button><button onclick="editCM('+i+')" class="text-xs text-blue-600 hover:underline">编辑</button><button onclick="delCM('+i+')" class="text-xs text-red-500 hover:underline">删除</button></td></tr>'; }).join('') +
+    '</tbody></table></div></div>';
+};
+function togCS(i) { var s=getSite(); s.news[i].status=s.news[i].status==='published'?'draft':'published'; saveSite(s); toast('状态已更新'); renderPage('content'); }
+function delCM(i) { if(!confirm('确定删除？'))return; var s=getSite(); s.news.splice(i,1); saveSite(s); toast('已删除'); renderPage('content'); }
+function addCM() {
+  openModal('<div class="p-6"><h2 class="text-xl font-bold mb-6">新增文章</h2><div class="space-y-4">' + fInput('标题','m_ct','') + fInput('分类','m_cc','集团动态') + fInput('日期','m_cd',new Date().toISOString().split('T')[0]) + fInput('封面图URL','m_ci','') + '<div><label class="block text-sm font-medium text-gray-700 mb-1">摘要</label><textarea id="m_csu" class="w-full border rounded-lg px-3 py-2 text-sm" rows="3"></textarea></div><div><label class="block text-sm font-medium text-gray-700 mb-1">状态</label><select id="m_cst" class="w-full border rounded-lg px-3 py-2 text-sm"><option value="published">发布</option><option value="draft">草稿</option></select></div></div><div class="flex justify-end gap-3 mt-6"><button onclick="closeModal()" class="px-4 py-2 border rounded-lg text-sm">取消</button><button onclick="doAddC()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">保存</button></div></div>');
+}
+function doAddC() {
+  var t=document.getElementById('m_ct').value.trim(); if(!t){toast('请输入标题','warning');return;}
+  var s=getSite(); if(!s.news) s.news=[];
+  s.news.unshift({id:'n_'+Date.now(),title:t,category:document.getElementById('m_cc').value.trim(),date:document.getElementById('m_cd').value.trim(),image:document.getElementById('m_ci').value.trim()||'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=300&h=200&fit=crop',summary:document.getElementById('m_csu').value.trim(),status:document.getElementById('m_cst').value});
+  saveSite(s); closeModal(); toast('文章已添加'); renderPage('content');
+}
+function editCM(i) {
+  var s=getSite(),n=s.news[i];
+  openModal('<div class="p-6"><h2 class="text-xl font-bold mb-6">编辑文章</h2><div class="space-y-4">' + fInput('标题','m_ct',n.title) + fInput('分类','m_cc',n.category||'') + fInput('日期','m_cd',n.date) + fInput('封面图URL','m_ci',n.image||'') + '<div><label class="block text-sm font-medium text-gray-700 mb-1">摘要</label><textarea id="m_csu" class="w-full border rounded-lg px-3 py-2 text-sm" rows="3">'+esc(n.summary||'')+'</textarea></div><div><label class="block text-sm font-medium text-gray-700 mb-1">状态</label><select id="m_cst" class="w-full border rounded-lg px-3 py-2 text-sm"><option value="published"'+(n.status==='published'?' selected':'')+'>发布</option><option value="draft"'+(n.status!=='published'?' selected':'')+'>草稿</option></select></div></div><div class="flex justify-end gap-3 mt-6"><button onclick="closeModal()" class="px-4 py-2 border rounded-lg text-sm">取消</button><button onclick="doEditC('+i+')" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">保存</button></div></div>');
+}
+function doEditC(i) {
+  var s=getSite(); s.news[i].title=document.getElementById('m_ct').value.trim(); s.news[i].category=document.getElementById('m_cc').value.trim(); s.news[i].date=document.getElementById('m_cd').value.trim(); s.news[i].image=document.getElementById('m_ci').value.trim(); s.news[i].summary=document.getElementById('m_csu').value.trim(); s.news[i].status=document.getElementById('m_cst').value;
+  saveSite(s); closeModal(); toast('文章已更新'); renderPage('content');
+}
+
+// ===== Banners =====
+pages.banners = function() {
+  var s=getSite(), items=s.banners||[];
+  return '<div class="bg-white rounded-xl shadow-sm p-6"><div class="flex justify-between items-center mb-6"><h2 class="text-lg font-bold">轮播图管理</h2><button onclick="addBM()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700"><i class="fa-solid fa-plus mr-1"></i>添加</button></div><div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">' +
+    items.map(function(b,i) { return '<div class="border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition"><img src="'+b.image+'" alt="" class="w-full h-40 object-cover"><div class="p-4"><input value="'+esc(b.title)+'" onchange="updB('+i+',\'title\',this.value)" class="w-full border rounded px-2 py-1 text-sm mb-2" placeholder="标题"><input value="'+esc(b.subtitle||'')+'" onchange="updB('+i+',\'subtitle\',this.value)" class="w-full border rounded px-2 py-1 text-sm mb-2" placeholder="副标题"><input value="'+b.image+'" onchange="updB('+i+',\'image\',this.value)" class="w-full border rounded px-2 py-1 text-xs text-gray-500 mb-2" placeholder="图片URL"><button onclick="delB('+i+')" class="text-xs text-red-500 hover:underline"><i class="fa-solid fa-trash mr-1"></i>删除</button></div></div>'; }).join('') + '</div></div>';
+};
+function updB(i,k,v) { var s=getSite(); s.banners[i][k]=v; saveSite(s); }
+function delB(i) { if(!confirm('确定删除？'))return; var s=getSite(); s.banners.splice(i,1); saveSite(s); toast('已删除'); renderPage('banners'); }
+function addBM() {
+  openModal('<div class="p-6"><h2 class="text-xl font-bold mb-6">添加轮播图</h2><div class="space-y-4">' + fInput('标题','m_bt','') + fInput('副标题','m_bs','') + fInput('图片URL','m_bi','') + fInput('链接','m_bl','#') + '</div><div class="flex justify-end gap-3 mt-6"><button onclick="closeModal()" class="px-4 py-2 border rounded-lg text-sm">取消</button><button onclick="doAddB()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">添加</button></div></div>');
+}
+function doAddB() {
+  var t=document.getElementById('m_bt').value.trim(); if(!t){toast('请输入标题','warning');return;}
+  var s=getSite(); if(!s.banners) s.banners=[];
+  s.banners.push({id:'b_'+Date.now(),title:t,subtitle:document.getElementById('m_bs').value.trim(),image:document.getElementById('m_bi').value.trim()||'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1400&h=500&fit=crop',link:document.getElementById('m_bl').value.trim()||'#'});
+  saveSite(s); closeModal(); toast('轮播图已添加'); renderPage('banners');
+}
+
+// ===== Quick Links =====
+pages.quicklinks = function() {
+  var s=getSite(), items=s.quickLinks||[];
+  return '<div class="bg-white rounded-xl shadow-sm p-6"><div class="flex justify-between items-center mb-6"><h2 class="text-lg font-bold">快捷入口管理</h2><button onclick="addQLM()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700"><i class="fa-solid fa-plus mr-1"></i>添加</button></div><div class="grid sm:grid-cols-2 gap-4">' +
+    items.map(function(q,i) { return '<div class="flex items-center gap-4 p-4 border rounded-lg"><div class="w-12 h-12 rounded-full flex items-center justify-center text-white" style="background:'+(q.color||'var(--primary)')+'"><i class="fa-solid '+(q.icon||'fa-link')+'"></i></div><div class="flex-1 space-y-1"><input value="'+esc(q.name)+'" onchange="updQ('+i+',\'name\',this.value)" class="w-full border rounded px-2 py-1 text-sm" placeholder="名称"><input value="'+esc(q.icon)+'" onchange="updQ('+i+',\'icon\',this.value)" class="w-full border rounded px-2 py-1 text-xs" placeholder="图标class"><input value="'+esc(q.link)+'" onchange="updQ('+i+',\'link\',this.value)" class="w-full border rounded px-2 py-1 text-xs" placeholder="链接"><input type="color" value="'+(q.color||'#3b82f6')+'" onchange="updQ('+i+',\'color\',this.value)" class="w-8 h-6 border rounded cursor-pointer"></div><button onclick="delQ('+i+')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button></div>'; }).join('') + '</div></div>';
+};
+function updQ(i,k,v) { var s=getSite(); s.quickLinks[i][k]=v; saveSite(s); }
+function delQ(i) { var s=getSite(); s.quickLinks.splice(i,1); saveSite(s); toast('已删除'); renderPage('quicklinks'); }
+function addQLM() {
+  openModal('<div class="p-6"><h2 class="text-xl font-bold mb-6">添加快捷入口</h2><div class="space-y-4">' + fInput('名称','m_qn','') + fInput('图标(FA class)','m_qi','fa-star') + fInput('链接','m_ql','#') + '<div><label class="block text-sm font-medium text-gray-700 mb-1">颜色</label><input id="m_qc" type="color" value="#3b82f6" class="w-16 h-10 border rounded cursor-pointer"></div></div><div class="flex justify-end gap-3 mt-6"><button onclick="closeModal()" class="px-4 py-2 border rounded-lg text-sm">取消</button><button onclick="doAddQ()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">添加</button></div></div>');
+}
+function doAddQ() {
+  var n=document.getElementById('m_qn').value.trim(); if(!n){toast('请输入名称','warning');return;}
+  var s=getSite(); if(!s.quickLinks) s.quickLinks=[];
+  s.quickLinks.push({id:'ql_'+Date.now(),name:n,icon:document.getElementById('m_qi').value.trim()||'fa-star',link:document.getElementById('m_ql').value.trim()||'#',color:document.getElementById('m_qc').value});
+  saveSite(s); closeModal(); toast('快捷入口已添加'); renderPage('quicklinks');
+}
+
+// ===== Friend Links =====
+pages.friendlinks = function() {
+  var s=getSite(), items=s.friendLinks||[];
+  return '<div class="bg-white rounded-xl shadow-sm p-6"><div class="flex justify-between items-center mb-6"><h2 class="text-lg font-bold">友情链接管理</h2><button onclick="addFLM()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700"><i class="fa-solid fa-plus mr-1"></i>添加</button></div><table class="w-full text-sm"><thead><tr class="bg-gray-50 text-left"><th class="px-4 py-3 font-medium text-gray-600">名称</th><th class="px-4 py-3 font-medium text-gray-600">URL</th><th class="px-4 py-3 font-medium text-gray-600">操作</th></tr></thead><tbody>' +
+    items.map(function(f,i) { return '<tr class="border-b border-gray-100"><td class="px-4 py-2"><input value="'+esc(f.name)+'" onchange="updF('+i+',\'name\',this.value)" class="border rounded px-2 py-1 text-sm w-full"></td><td class="px-4 py-2"><input value="'+esc(f.url)+'" onchange="updF('+i+',\'url\',this.value)" class="border rounded px-2 py-1 text-sm w-full"></td><td class="px-4 py-2"><button onclick="delF('+i+')" class="text-xs text-red-500 hover:underline">删除</button></td></tr>'; }).join('') + '</tbody></table></div>';
+};
+function updF(i,k,v) { var s=getSite(); s.friendLinks[i][k]=v; saveSite(s); }
+function delF(i) { var s=getSite(); s.friendLinks.splice(i,1); saveSite(s); toast('已删除'); renderPage('friendlinks'); }
+function addFLM() {
+  openModal('<div class="p-6"><h2 class="text-xl font-bold mb-6">添加友情链接</h2><div class="space-y-4">' + fInput('名称','m_fn','') + fInput('URL','m_fu','https://') + '</div><div class="flex justify-end gap-3 mt-6"><button onclick="closeModal()" class="px-4 py-2 border rounded-lg text-sm">取消</button><button onclick="doAddF()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">添加</button></div></div>');
+}
+function doAddF() {
+  var n=document.getElementById('m_fn').value.trim(); if(!n){toast('请输入名称','warning');return;}
+  var s=getSite(); if(!s.friendLinks) s.friendLinks=[];
+  s.friendLinks.push({id:'fl_'+Date.now(),name:n,url:document.getElementById('m_fu').value.trim()});
+  saveSite(s); closeModal(); toast('友情链接已添加'); renderPage('friendlinks');
+}
+
+// ===== Leaders =====
+pages.leaders = function() {
+  var s=getSite(), items=s.leaders||[];
+  return '<div class="bg-white rounded-xl shadow-sm p-6"><div class="flex justify-between items-center mb-6"><h2 class="text-lg font-bold">领导介绍管理</h2><button onclick="addLM()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700"><i class="fa-solid fa-plus mr-1"></i>添加</button></div><div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">' +
+    items.map(function(l,i) { return '<div class="border rounded-xl overflow-hidden shadow-sm"><img src="'+(l.photo||'')+'" alt="" class="w-full h-40 object-cover"><div class="p-4 space-y-2"><input value="'+esc(l.name)+'" onchange="updL('+i+',\'name\',this.value)" class="w-full border rounded px-2 py-1 text-sm" placeholder="姓名"><input value="'+esc(l.position)+'" onchange="updL('+i+',\'position\',this.value)" class="w-full border rounded px-2 py-1 text-sm" placeholder="职务"><input value="'+(l.photo||'')+'" onchange="updL('+i+',\'photo\',this.value)" class="w-full border rounded px-2 py-1 text-xs text-gray-500" placeholder="照片URL"><textarea onchange="updL('+i+',\'bio\',this.value)" class="w-full border rounded px-2 py-1 text-xs" rows="2" placeholder="简介">'+esc(l.bio||'')+'</textarea><button onclick="delL('+i+')" class="text-xs text-red-500 hover:underline"><i class="fa-solid fa-trash mr-1"></i>删除</button></div></div>'; }).join('') + '</div></div>';
+};
+function updL(i,k,v) { var s=getSite(); s.leaders[i][k]=v; saveSite(s); }
+function delL(i) { var s=getSite(); s.leaders.splice(i,1); saveSite(s); toast('已删除'); renderPage('leaders'); }
+function addLM() {
+  openModal('<div class="p-6"><h2 class="text-xl font-bold mb-6">添加领导</h2><div class="space-y-4">' + fInput('姓名','m_ln','') + fInput('职务','m_lp','') + fInput('照片URL','m_lph','') + '<div><label class="block text-sm font-medium text-gray-700 mb-1">简介</label><textarea id="m_lb" class="w-full border rounded-lg px-3 py-2 text-sm" rows="3"></textarea></div></div><div class="flex justify-end gap-3 mt-6"><button onclick="closeModal()" class="px-4 py-2 border rounded-lg text-sm">取消</button><button onclick="doAddL()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">添加</button></div></div>');
+}
+function doAddL() {
+  var n=document.getElementById('m_ln').value.trim(); if(!n){toast('请输入姓名','warning');return;}
+  var s=getSite(); if(!s.leaders) s.leaders=[];
+  s.leaders.push({id:'l_'+Date.now(),name:n,position:document.getElementById('m_lp').value.trim(),photo:document.getElementById('m_lph').value.trim()||'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop&crop=face',bio:document.getElementById('m_lb').value.trim()});
+  saveSite(s); closeModal(); toast('领导已添加'); renderPage('leaders');
+}
+
+// ===== Teachers =====
+pages.teachers = function() {
+  var s=getSite(), items=s.teachers||[];
+  return '<div class="bg-white rounded-xl shadow-sm p-6"><div class="flex justify-between items-center mb-6"><h2 class="text-lg font-bold">师资队伍管理</h2><button onclick="addTM()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700"><i class="fa-solid fa-plus mr-1"></i>添加</button></div><div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">' +
+    items.map(function(t,i) { return '<div class="border rounded-xl overflow-hidden shadow-sm"><img src="'+(t.photo||'')+'" alt="" class="w-full h-36 object-cover"><div class="p-4 space-y-1"><input value="'+esc(t.name)+'" onchange="updT('+i+',\'name\',this.value)" class="w-full border rounded px-2 py-1 text-sm" placeholder="姓名"><input value="'+esc(t.title)+'" onchange="updT('+i+',\'title\',this.value)" class="w-full border rounded px-2 py-1 text-xs" placeholder="职称"><input value="'+esc(t.subject)+'" onchange="updT('+i+',\'subject\',this.value)" class="w-full border rounded px-2 py-1 text-xs" placeholder="学科"><input value="'+(t.years||0)+'" onchange="updT('+i+',\'years\',this.value)" class="w-full border rounded px-2 py-1 text-xs" placeholder="从教年限"><textarea onchange="updT('+i+',\'bio\',this.value)" class="w-full border rounded px-2 py-1 text-xs" rows="2">'+esc(t.bio||'')+'</textarea><button onclick="delT('+i+')" class="text-xs text-red-500 hover:underline">删除</button></div></div>'; }).join('') + '</div></div>';
+};
+function updT(i,k,v) { var s=getSite(); s.teachers[i][k]=v; saveSite(s); }
+function delT(i) { var s=getSite(); s.teachers.splice(i,1); saveSite(s); toast('已删除'); renderPage(curPage); }
+function addTM() {
+  openModal('<div class="p-6"><h2 class="text-xl font-bold mb-6">添加教师</h2><div class="space-y-4">' + fInput('姓名','m_tn','') + fInput('学科','m_ts','') + fInput('职称','m_tt','') + fInput('从教年限','m_ty','15') + fInput('照片URL','m_tp','') + '<div><label class="block text-sm font-medium text-gray-700 mb-1">简介</label><textarea id="m_tb" class="w-full border rounded-lg px-3 py-2 text-sm" rows="3"></textarea></div></div><div class="flex justify-end gap-3 mt-6"><button onclick="closeModal()" class="px-4 py-2 border rounded-lg text-sm">取消</button><button onclick="doAddT()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">添加</button></div></div>');
+}
+function doAddT() {
+  var n=document.getElementById('m_tn').value.trim(); if(!n){toast('请输入姓名','warning');return;}
+  var s=getSite(); if(!s.teachers) s.teachers=[];
+  s.teachers.push({id:'t_'+Date.now(),name:n,subject:document.getElementById('m_ts').value.trim(),title:document.getElementById('m_tt').value.trim(),years:parseInt(document.getElementById('m_ty').value)||0,photo:document.getElementById('m_tp').value.trim()||'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&h=200&fit=crop&crop=face',bio:document.getElementById('m_tb').value.trim()});
+  saveSite(s); closeModal(); toast('教师已添加'); renderPage(curPage);
+}
+
+// ===== Users =====
+pages.users = function() {
+  var data = getCMSData(), users = data.users || [];
+  return '<div class="bg-white rounded-xl shadow-sm p-6"><div class="flex justify-between items-center mb-6"><h2 class="text-lg font-bold">用户管理</h2><button onclick="addUM()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700"><i class="fa-solid fa-plus mr-1"></i>添加用户</button></div><div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="bg-gray-50 text-left"><th class="px-4 py-3 font-medium text-gray-600">用户名</th><th class="px-4 py-3 font-medium text-gray-600">角色</th><th class="px-4 py-3 font-medium text-gray-600">状态</th><th class="px-4 py-3 font-medium text-gray-600">最后登录</th><th class="px-4 py-3 font-medium text-gray-600">操作</th></tr></thead><tbody>' +
+    users.map(function(u,i) { return '<tr class="border-b border-gray-100 hover:bg-gray-50"><td class="px-4 py-3 font-medium">'+esc(u.username)+'</td><td class="px-4 py-3">'+esc(u.role)+'</td><td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs '+(u.status==='active'?'bg-green-100 text-green-700':'bg-red-100 text-red-700')+'">'+(u.status==='active'?'启用':'禁用')+'</span></td><td class="px-4 py-3 text-gray-500">'+esc(u.lastLogin||'-')+'</td><td class="px-4 py-3 flex gap-2"><button onclick="togUSt('+i+')" class="text-xs text-blue-600 hover:underline">'+(u.status==='active'?'禁用':'启用')+'</button><button onclick="delU('+i+')" class="text-xs text-red-500 hover:underline">删除</button></td></tr>'; }).join('') +
+    '</tbody></table></div></div>';
+};
+function togUSt(i) { var d=getCMSData(); d.users[i].status=d.users[i].status==='active'?'disabled':'active'; saveCMSData(d); toast('状态已更新'); renderPage('users'); }
+function delU(i) { if(!confirm('确定删除？'))return; var d=getCMSData(); d.users.splice(i,1); saveCMSData(d); toast('已删除'); renderPage('users'); }
+function addUM() {
+  openModal('<div class="p-6"><h2 class="text-xl font-bold mb-6">添加用户</h2><div class="space-y-4">' + fInput('用户名','m_un','') + fInput('密码','m_up','') + '<div><label class="block text-sm font-medium text-gray-700 mb-1">角色</label><select id="m_ur" class="w-full border rounded-lg px-3 py-2 text-sm"><option>超级管理员</option><option>内容编辑</option><option>内容审核</option><option>只读用户</option></select></div></div><div class="flex justify-end gap-3 mt-6"><button onclick="closeModal()" class="px-4 py-2 border rounded-lg text-sm">取消</button><button onclick="doAddU()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">添加</button></div></div>');
+}
+function doAddU() {
+  var n=document.getElementById('m_un').value.trim(); if(!n){toast('请输入用户名','warning');return;}
+  var p=document.getElementById('m_up').value.trim(); if(!p){toast('请输入密码','warning');return;}
+  var d=getCMSData(); d.users.push({id:'u_'+Date.now(),username:n,password:p,role:document.getElementById('m_ur').value,status:'active',lastLogin:'-'});
+  saveCMSData(d); closeModal(); toast('用户已添加'); renderPage('users');
+}
+
+// ===== 初始化 =====
+initCMSData();
+</script>
+</body>
+</html>

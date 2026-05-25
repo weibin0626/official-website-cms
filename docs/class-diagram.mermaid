@@ -1,0 +1,291 @@
+classDiagram
+    class Site {
+        +UUID id
+        +String name
+        +String nameEn
+        +String domain
+        +String logo
+        +String primaryColor
+        +String secondaryColor
+        +String phone
+        +String email
+        +String address
+        +String icp
+        +String police
+        +String description
+        +String status
+        +DateTime createdAt
+        +DateTime updatedAt
+    }
+
+    class User {
+        +UUID id
+        +String username
+        +String passwordHash
+        +String realName
+        +String email
+        +String phone
+        +String avatar
+        +String status
+        +Int loginFailCount
+        +DateTime lockedUntil
+        +DateTime lastLoginAt
+        +String lastLoginIp
+        +DateTime createdAt
+        +DateTime updatedAt
+    }
+
+    class Role {
+        +UUID id
+        +String name
+        +String code
+        +String description
+        +DateTime createdAt
+    }
+
+    class Permission {
+        +UUID id
+        +String resource
+        +String action
+        +String description
+        +DateTime createdAt
+    }
+
+    class SiteUser {
+        +UUID id
+        +UUID userId
+        +UUID siteId
+        +UUID roleId
+        +DateTime createdAt
+    }
+
+    class RolePermission {
+        +UUID roleId
+        +UUID permissionId
+    }
+
+    class Department {
+        +UUID id
+        +UUID siteId
+        +UUID parentId
+        +String name
+        +Int sortOrder
+        +Json extFields
+        +String status
+        +DateTime createdAt
+        +DateTime updatedAt
+    }
+
+    class Node {
+        +UUID id
+        +UUID siteId
+        +UUID parentId
+        +String name
+        +String slug
+        +String type
+        +String icon
+        +Int sortOrder
+        +Json config
+        +String status
+        +DateTime createdAt
+        +DateTime updatedAt
+    }
+
+    class Article {
+        +UUID id
+        +UUID siteId
+        +UUID nodeId
+        +String title
+        +String content
+        +String summary
+        +String coverImage
+        +UUID authorId
+        +UUID reviewerId
+        +String source
+        +String status
+        +String rejectReason
+        +DateTime publishedAt
+        +Int viewCount
+        +Boolean isTop
+        +Int sortOrder
+        +DateTime createdAt
+        +DateTime updatedAt
+    }
+
+    class Media {
+        +UUID id
+        +UUID siteId
+        +UUID userId
+        +String filename
+        +String filepath
+        +String mimetype
+        +Int size
+        +String alt
+        +DateTime createdAt
+    }
+
+    class Banner {
+        +UUID id
+        +UUID siteId
+        +String image
+        +String title
+        +String subtitle
+        +String link
+        +Int sortOrder
+        +String status
+        +DateTime createdAt
+        +DateTime updatedAt
+    }
+
+    class FriendLink {
+        +UUID id
+        +UUID siteId
+        +String name
+        +String url
+        +String logo
+        +Int sortOrder
+        +String status
+        +DateTime createdAt
+        +DateTime updatedAt
+    }
+
+    class Leader {
+        +UUID id
+        +UUID siteId
+        +String name
+        +String position
+        +String photo
+        +String bio
+        +Int sortOrder
+        +String status
+        +DateTime createdAt
+        +DateTime updatedAt
+    }
+
+    class Teacher {
+        +UUID id
+        +UUID siteId
+        +String name
+        +String title
+        +String subject
+        +String photo
+        +String bio
+        +Int sortOrder
+        +String status
+        +DateTime createdAt
+        +DateTime updatedAt
+    }
+
+    class NavItem {
+        +UUID id
+        +UUID siteId
+        +UUID parentId
+        +String name
+        +String link
+        +String icon
+        +Int sortOrder
+        +String status
+        +DateTime createdAt
+        +DateTime updatedAt
+    }
+
+    class QuickLink {
+        +UUID id
+        +UUID siteId
+        +String name
+        +String icon
+        +String link
+        +String color
+        +Int sortOrder
+        +String status
+        +DateTime createdAt
+        +DateTime updatedAt
+    }
+
+    class SiteConfig {
+        +UUID id
+        +UUID siteId
+        +String configKey
+        +String configValue
+        +DateTime createdAt
+        +DateTime updatedAt
+    }
+
+    class AuditLog {
+        +UUID id
+        +UUID siteId
+        +UUID userId
+        +String action
+        +String resource
+        +String resourceId
+        +Json detail
+        +String ip
+        +String userAgent
+        +DateTime createdAt
+    }
+
+    class Notification {
+        +UUID id
+        +UUID siteId
+        +UUID userId
+        +String type
+        +String title
+        +String content
+        +Boolean isRead
+        +String link
+        +DateTime createdAt
+    }
+
+    class RecycleBin {
+        +UUID id
+        +UUID siteId
+        +String resourceType
+        +UUID resourceId
+        +Json resourceData
+        +UUID deletedBy
+        +DateTime deletedAt
+        +DateTime expiresAt
+    }
+
+    class NodePermission {
+        +UUID id
+        +UUID nodeId
+        +UUID roleId
+        +UUID userId
+        +Boolean canRead
+        +Boolean canCreate
+        +Boolean canUpdate
+        +Boolean canDelete
+        +DateTime createdAt
+    }
+
+    Site "1" --o "N" SiteUser : has
+    Site "1" --o "N" Node : has
+    Site "1" --o "N" Article : has
+    Site "1" --o "N" Media : has
+    Site "1" --o "N" Banner : has
+    Site "1" --o "N" FriendLink : has
+    Site "1" --o "N" Leader : has
+    Site "1" --o "N" Teacher : has
+    Site "1" --o "N" NavItem : has
+    Site "1" --o "N" QuickLink : has
+    Site "1" --o "N" Department : has
+    Site "1" --o "N" SiteConfig : has
+    Site "1" --o "N" AuditLog : has
+    Site "1" --o "N" Notification : has
+    Site "1" --o "N" RecycleBin : has
+
+    User "1" --o "N" SiteUser : belongs
+    User "1" --o "N" Article : authors
+    User "1" --o "N" AuditLog : operates
+    User "1" --o "N" Notification : receives
+
+    Role "1" --o "N" SiteUser : assigned
+    Role "1" --o "N" RolePermission : has
+    Permission "1" --o "N" RolePermission : granted
+
+    Node "1" --o "N" Node : parent
+    Node "1" --o "N" Article : contains
+    NavItem "1" --o "N" NavItem : parent
+    Department "1" --o "N" Department : parent
+    Node "1" --o "N" NodePermission : controls

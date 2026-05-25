@@ -1,0 +1,94 @@
+sequenceDiagram
+    participant C as Client(React)
+    participant A as AuthController
+    participant AS as AuthService
+    participant U as UserService
+    participant DB as Database
+    participant AL as AuditLogService
+
+    C->>A: POST /api/auth/login {username, password}
+    A->>AS: login(username, password)
+    AS->>U: findByUsername(username)
+    U->>DB: SELECT * FROM users WHERE username=?
+    DB-->>U: user record
+    U-->>AS: user (含password_hash)
+
+    alt 账号锁定
+        AS-->>A: {code:1002, message:"账号已锁定"}
+        A-->>C: 403 账号已锁定
+    else 密码错误
+        AS->>U: incrementLoginFailCount(userId)
+        AS-->>A: {code:1001, message:"用户名或密码错误"}
+        A-->>C: 401 用户名或密码错误
+    else 登录成功
+        AS->>U: resetLoginFailCount(userId)
+        AS->>U: updateLastLogin(userId, ip, time)
+        AS->>AS: generateJWT({userId, role, siteIds})
+        AS->>AL: logLogin(userId, ip)
+        AS-->>A: {token, user, sites}
+        A-->>C: 200 {code:0, data:{token, user, sites}}
+    end
+
+    Note over C,DB: ========== 文章创建→审核→发布流程 ==========
+
+    participant E as Editor
+    participant R as Reviewer
+    participant AC as ArticleController
+    participant AS2 as ArticleService
+    participant NS as NotificationService
+
+    E->>C: 撰写文章，点击"提交审核"
+    C->>AC: POST /api/articles {title, content, nodeId, status:"pending"}
+    AC->>AC: siteContext注入site_id
+    AC->>AC: rbac校验(articles:create)
+    AC->>AS2: createArticle(data)
+    AS2->>AS2: sanitizeHTML(content)
+    AS2->>DB: INSERT INTO articles (site_id, status='pending', ...)
+    DB-->>AS2: article
+    AS2-->>C: {code:0, data:article}
+
+    Note over R,C: 审核员收到通知
+
+    R->>C: 查看待审列表
+    C->>AC: GET /api/articles?status=pending
+    AC->>AS2: listArticles({site_id, status:'pending'})
+    AS2->>DB: SELECT ... WHERE site_id=? AND status='pending'
+    DB-->>AS2: articles[]
+    AS2-->>C: {code:0, data:{items, total}}
+
+    R->>C: 点击"审核通过"
+    C->>AC: PUT /api/articles/:id/audit {action:"approve"}
+    AC->>AC: rbac校验(articles:audit)
+    AC->>AS2: auditArticle(id, action)
+    AS2->>DB: UPDATE articles SET status='published', reviewer_id=?, published_at=NOW()
+    AS2->>NS: notify(editorId, "audit_pass", "文章审核通过")
+    AS2-->>C: {code:0, data:article}
+
+    Note over C,DB: ========== 多站点切换流程 ==========
+
+    participant SS as SiteStore(Zustand)
+    participant API as API Client
+    participant SC as SitesController
+
+    C->>SS: switchSite(targetSiteId)
+    SS->>SS: 更新currentSiteId
+    SS->>SS: 清除已缓存的站点数据
+
+    SS->>API: GET /api/sites/:id (获取站点配置)
+    API->>SC: getSiteById(targetSiteId)
+    SC->>DB: SELECT * FROM sites WHERE id=?
+    DB-->>SC: site
+    SC-->>API: site
+    API-->>SS: siteConfig
+
+    SS->>API: GET /api/nodes (获取新站点栏目树)
+    API->>SC: listNodes(site_id=targetSiteId)
+    SC->>DB: SELECT * FROM nodes WHERE site_id=? ORDER BY sort_order
+    DB-->>SC: nodes[]
+    SC-->>API: nodeTree
+    API-->>SS: nodeTree
+
+    SS->>API: GET /api/nav-items (获取导航)
+    API-->>SS: navTree
+
+    SS->>C: 重新渲染侧边栏/导航/内容区

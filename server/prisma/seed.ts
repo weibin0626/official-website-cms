@@ -6,6 +6,7 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Seeding database...');
 
+  // ========== ROLES ==========
   const roles = await Promise.all([
     prisma.role.upsert({ where: { name: 'SUPER_ADMIN' }, update: {}, create: { name: 'SUPER_ADMIN', displayName: '超级管理员', description: '系统最高权限', isSystem: true } }),
     prisma.role.upsert({ where: { name: 'SITE_ADMIN' }, update: {}, create: { name: 'SITE_ADMIN', displayName: '站点管理员', description: '站点管理权限', isSystem: true } }),
@@ -15,6 +16,136 @@ async function main() {
   ]);
   console.log('✅ Roles created');
 
+  // ========== PERMISSIONS (30 items: p001-p030) ==========
+  const permissionDefs = [
+    { code: 'p001', module: 'site', action: 'read', description: '查看站点' },
+    { code: 'p002', module: 'site', action: 'create', description: '创建站点' },
+    { code: 'p003', module: 'site', action: 'update', description: '更新站点' },
+    { code: 'p004', module: 'site', action: 'delete', description: '删除站点' },
+    { code: 'p005', module: 'user', action: 'read', description: '查看用户' },
+    { code: 'p006', module: 'user', action: 'create', description: '创建用户' },
+    { code: 'p007', module: 'user', action: 'update', description: '更新用户' },
+    { code: 'p008', module: 'user', action: 'delete', description: '删除用户' },
+    { code: 'p009', module: 'node', action: 'read', description: '查看栏目' },
+    { code: 'p010', module: 'node', action: 'create', description: '创建栏目' },
+    { code: 'p011', module: 'node', action: 'update', description: '更新栏目' },
+    { code: 'p012', module: 'node', action: 'delete', description: '删除栏目' },
+    { code: 'p013', module: 'article', action: 'read', description: '查看文章' },
+    { code: 'p014', module: 'article', action: 'create', description: '创建文章' },
+    { code: 'p015', module: 'article', action: 'update', description: '更新文章' },
+    { code: 'p016', module: 'article', action: 'delete', description: '删除文章' },
+    { code: 'p017', module: 'article', action: 'publish', description: '发布文章' },
+    { code: 'p018', module: 'article', action: 'review', description: '审核文章' },
+    { code: 'p019', module: 'media', action: 'read', description: '查看文件' },
+    { code: 'p020', module: 'media', action: 'upload', description: '上传文件' },
+    { code: 'p021', module: 'media', action: 'delete', description: '删除文件' },
+    { code: 'p022', module: 'banner', action: 'read', description: '查看轮播图' },
+    { code: 'p023', module: 'banner', action: 'manage', description: '管理轮播图' },
+    { code: 'p024', module: 'friendlink', action: 'read', description: '查看友链' },
+    { code: 'p025', module: 'friendlink', action: 'manage', description: '管理友链' },
+    { code: 'p026', module: 'leader', action: 'read', description: '查看领导' },
+    { code: 'p027', module: 'leader', action: 'manage', description: '管理领导' },
+    { code: 'p028', module: 'teacher', action: 'read', description: '查看师资' },
+    { code: 'p029', module: 'teacher', action: 'manage', description: '管理师资' },
+    { code: 'p030', module: 'config', action: 'manage', description: '站点配置管理' },
+  ];
+
+  const permissions: Record<string, any> = {};
+  for (const p of permissionDefs) {
+    const existing = await prisma.permission.findFirst({
+      where: { module: p.module, action: p.action },
+    });
+    if (existing) {
+      permissions[p.code] = existing;
+    } else {
+      permissions[p.code] = await prisma.permission.create({
+        data: { module: p.module, action: p.action, description: p.description },
+      });
+    }
+  }
+  console.log('✅ Permissions created (30)');
+
+  // ========== ROLE-PERMISSION ASSOCIATIONS ==========
+  const superAdminRole = roles.find(r => r.name === 'SUPER_ADMIN')!;
+  const siteAdminRole = roles.find(r => r.name === 'SITE_ADMIN')!;
+  const editorRole = roles.find(r => r.name === 'EDITOR')!;
+  const reviewerRole = roles.find(r => r.name === 'REVIEWER')!;
+  const viewerRole = roles.find(r => r.name === 'VIEWER')!;
+
+  // SUPER_ADMIN: all permissions
+  const allPermissionIds = Object.values(permissions).map((p: any) => p.id);
+
+  // SITE_ADMIN: all except site:create, site:delete
+  const siteAdminPermCodes = [
+    'p001', 'p003', // site: read, update (no create/delete)
+    'p005', 'p006', 'p007', 'p008', // user: full
+    'p009', 'p010', 'p011', 'p012', // node: full
+    'p013', 'p014', 'p015', 'p016', 'p017', 'p018', // article: full
+    'p019', 'p020', 'p021', // media: full
+    'p022', 'p023', // banner: full
+    'p024', 'p025', // friendlink: full
+    'p026', 'p027', // leader: full
+    'p028', 'p029', // teacher: full
+    'p030', // config: manage
+  ];
+
+  // EDITOR: article CRUD(own), media upload/read, node read
+  const editorPermCodes = [
+    'p009', // node: read
+    'p013', 'p014', 'p015', // article: read, create, update
+    'p019', 'p020', // media: read, upload
+    'p022', // banner: read
+    'p024', // friendlink: read
+    'p026', // leader: read
+    'p028', // teacher: read
+  ];
+
+  // REVIEWER: article review/publish/read, node read
+  const reviewerPermCodes = [
+    'p009', // node: read
+    'p013', 'p017', 'p018', // article: read, publish, review
+    'p019', // media: read
+    'p022', // banner: read
+    'p024', // friendlink: read
+    'p026', // leader: read
+    'p028', // teacher: read
+  ];
+
+  // VIEWER: read only
+  const viewerPermCodes = [
+    'p001', // site: read
+    'p005', // user: read
+    'p009', // node: read
+    'p013', // article: read
+    'p019', // media: read
+    'p022', // banner: read
+    'p024', // friendlink: read
+    'p026', // leader: read
+    'p028', // teacher: read
+  ];
+
+  const rolePermMap: Record<string, string[]> = {
+    [superAdminRole.id]: allPermissionIds,
+    [siteAdminRole.id]: siteAdminPermCodes.map(c => permissions[c].id),
+    [editorRole.id]: editorPermCodes.map(c => permissions[c].id),
+    [reviewerRole.id]: reviewerPermCodes.map(c => permissions[c].id),
+    [viewerRole.id]: viewerPermCodes.map(c => permissions[c].id),
+  };
+
+  for (const [roleId, permIds] of Object.entries(rolePermMap)) {
+    for (const permissionId of permIds) {
+      await prisma.rolePermission.upsert({
+        where: {
+          roleId_permissionId: { roleId, permissionId },
+        },
+        update: {},
+        create: { roleId, permissionId },
+      });
+    }
+  }
+  console.log('✅ Role-Permission associations created');
+
+  // ========== SITES ==========
   const sites = await Promise.all([
     prisma.site.upsert({ where: { name: 'site_001' }, update: {}, create: { name: 'site_001', nameCn: '春阳教育集团', nameEn: 'Chunyang Education Group', primaryColor: '#1a3a6b', phone: '400-888-6688', address: '江苏省南京市玄武区教育路188号', icp: '苏ICP备2024001234号', status: 'ACTIVE' } }),
     prisma.site.upsert({ where: { name: 'site_002' }, update: {}, create: { name: 'site_002', nameCn: '德育中学', primaryColor: '#1a6b3a', status: 'ACTIVE' } }),
@@ -22,6 +153,7 @@ async function main() {
   ]);
   console.log('✅ Sites created');
 
+  // ========== ADMIN USER ==========
   const hashedPwd = await bcrypt.hash('admin123', 10);
   const admin = await prisma.user.upsert({
     where: { username: 'admin' },
@@ -40,6 +172,7 @@ async function main() {
   }
   console.log('✅ Site user associations created');
 
+  // ========== SAMPLE DATA ==========
   const site1 = sites[0];
   await prisma.banner.createMany({ data: [
     { siteId: site1.id, title: '春阳教育集团欢迎您', imageUrl: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1200&h=400&fit=crop', sort: 1 },
@@ -69,7 +202,6 @@ async function main() {
     { siteId: site1.id, name: '招生信息', url: '/enrollment', sort: 5 },
     { siteId: site1.id, name: '联系我们', url: '/contact', sort: 6 },
   ] });
-  // suppress unused var warning
   void nav1;
 
   await prisma.leader.createMany({ data: [

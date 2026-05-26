@@ -4,6 +4,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import { rateLimit } from 'express-rate-limit';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
+import routes from './routes';
 
 const app = express();
 
@@ -31,6 +32,12 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.get('/api/health', (_req, res) => {
   res.json({ code: 0, data: { status: 'ok', timestamp: new Date().toISOString() }, message: 'success' });
 });
+
+// 注册业务路由
+app.use('/api', routes);
+
+// 静态文件服务（上传的文件）
+app.use('/uploads', express.static('uploads'));
 
 // 404 & 错误处理（顺序很重要）
 app.use(notFoundHandler);

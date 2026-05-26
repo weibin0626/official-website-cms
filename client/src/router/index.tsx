@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { ReactNode } from 'react';
 import AdminLayout from '../components/Layout/AdminLayout';
+import { PortalLayout } from '../components/Portal';
 import LoginPage from '../pages/admin/Login';
 import DashboardPage from '../pages/admin/Dashboard';
 import SitesPage from '../pages/admin/Sites';
@@ -18,6 +19,11 @@ import NavItemsPage from '../pages/admin/NavItems';
 import QuickLinksPage from '../pages/admin/QuickLinks';
 import AuditLogsPage from '../pages/admin/AuditLogs';
 import NotificationsPage from '../pages/admin/Notifications';
+import HomePage from '../pages/portal/Home';
+import NewsListPage from '../pages/portal/NewsList';
+import NewsDetailPage from '../pages/portal/NewsDetail';
+import LeaderListPage from '../pages/portal/LeaderList';
+import TeacherListPage from '../pages/portal/TeacherList';
 
 /** Protected route: redirects to login if not authenticated */
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
@@ -29,10 +35,24 @@ const ProtectedRoute = ({ children }: { children: ReactNode }) => {
 };
 
 export const router = createBrowserRouter([
+  // Portal (public) routes
+  {
+    path: '/',
+    element: <PortalLayout />,
+    children: [
+      { index: true, element: <HomePage /> },
+      { path: 'news', element: <NewsListPage /> },
+      { path: 'news/:id', element: <NewsDetailPage /> },
+      { path: 'leaders', element: <LeaderListPage /> },
+      { path: 'teachers', element: <TeacherListPage /> },
+    ],
+  },
+  // Login
   {
     path: '/login',
     element: <LoginPage />,
   },
+  // Admin (protected) routes
   {
     path: '/admin',
     element: (
@@ -60,9 +80,5 @@ export const router = createBrowserRouter([
       { path: 'auditlogs', element: <AuditLogsPage /> },
       { path: 'notifications', element: <NotificationsPage /> },
     ],
-  },
-  {
-    path: '/',
-    element: <Navigate to="/admin" replace />,
   },
 ]);

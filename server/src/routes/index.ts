@@ -15,6 +15,7 @@ import notificationsRoutes from './notifications.routes';
 import auditlogsRoutes from './auditlogs.routes';
 import departmentsRoutes from './departments.routes';
 import recyclebinRoutes from './recyclebin.routes';
+import portalRoutes from './portal.routes';
 
 const router = Router();
 
@@ -34,5 +35,6 @@ router.use('/notifications', notificationsRoutes);
 router.use('/audit-logs', auditlogsRoutes);
 router.use('/departments', departmentsRoutes);
 router.use('/recycle-bin', recyclebinRoutes);
+router.use('/portal', portalRoutes);
 
 export default router;

@@ -1,5 +1,6 @@
 import multer from 'multer';
 import path from 'path';
+import fs from 'fs';
 import crypto from 'crypto';
 import config from '../config';
 import { createAppError } from '../utils/helpers';
@@ -16,7 +17,10 @@ const storage = multer.diskStorage({
   destination: (_req, file, cb) => {
     const siteId = (_req as any).siteId || 'default';
     const uploadDir = path.join(config.uploadDir, siteId);
-    // Use callback style since multer doesn't support async
+    // Ensure directory exists
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
     cb(null, uploadDir);
   },
   filename: (_req, file, cb) => {

@@ -6,6 +6,18 @@ import DashboardPage from '../pages/admin/Dashboard';
 import SitesPage from '../pages/admin/Sites';
 import UsersPage from '../pages/admin/Users';
 import SiteConfigPage from '../pages/admin/SiteConfig';
+import NodesPage from '../pages/admin/Nodes';
+import ArticlesPage from '../pages/admin/Articles';
+import ArticleEditPage from '../pages/admin/ArticleEdit';
+import MediaPage from '../pages/admin/Media';
+import BannersPage from '../pages/admin/Banners';
+import FriendLinksPage from '../pages/admin/FriendLinks';
+import LeadersPage from '../pages/admin/Leaders';
+import TeachersPage from '../pages/admin/Teachers';
+import NavItemsPage from '../pages/admin/NavItems';
+import QuickLinksPage from '../pages/admin/QuickLinks';
+import AuditLogsPage from '../pages/admin/AuditLogs';
+import NotificationsPage from '../pages/admin/Notifications';
 
 /** Protected route: redirects to login if not authenticated */
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
@@ -33,17 +45,20 @@ export const router = createBrowserRouter([
       { path: 'sites', element: <SitesPage /> },
       { path: 'users', element: <UsersPage /> },
       { path: 'siteconfig', element: <SiteConfigPage /> },
-      // Placeholder routes for future T03+ tasks
-      { path: 'nodes', element: <PlaceholderPage title="栏目管理" /> },
-      { path: 'articles', element: <PlaceholderPage title="文章管理" /> },
-      { path: 'media', element: <PlaceholderPage title="文件管理" /> },
-      { path: 'banners', element: <PlaceholderPage title="轮播图管理" /> },
-      { path: 'friendlinks', element: <PlaceholderPage title="友链管理" /> },
-      { path: 'leaders', element: <PlaceholderPage title="领导介绍" /> },
-      { path: 'teachers', element: <PlaceholderPage title="师资队伍" /> },
-      { path: 'navitems', element: <PlaceholderPage title="导航管理" /> },
-      { path: 'quicklinks', element: <PlaceholderPage title="快捷入口" /> },
-      { path: 'auditlogs', element: <PlaceholderPage title="操作日志" /> },
+      // T03: Core management pages
+      { path: 'nodes', element: <NodesPage /> },
+      { path: 'articles', element: <ArticlesPage /> },
+      { path: 'articles/edit/:id', element: <ArticleEditPage /> },
+      { path: 'media', element: <MediaPage /> },
+      // T04: Business function pages
+      { path: 'banners', element: <BannersPage /> },
+      { path: 'friendlinks', element: <FriendLinksPage /> },
+      { path: 'leaders', element: <LeadersPage /> },
+      { path: 'teachers', element: <TeachersPage /> },
+      { path: 'navitems', element: <NavItemsPage /> },
+      { path: 'quicklinks', element: <QuickLinksPage /> },
+      { path: 'auditlogs', element: <AuditLogsPage /> },
+      { path: 'notifications', element: <NotificationsPage /> },
     ],
   },
   {
@@ -51,13 +66,3 @@ export const router = createBrowserRouter([
     element: <Navigate to="/admin" replace />,
   },
 ]);
-
-/** Simple placeholder for future pages */
-function PlaceholderPage({ title }: { title: string }) {
-  return (
-    <div style={{ padding: '20px' }}>
-      <h2>{title}</h2>
-      <p style={{ color: '#888' }}>该模块将在后续迭代中实现</p>
-    </div>
-  );
-}

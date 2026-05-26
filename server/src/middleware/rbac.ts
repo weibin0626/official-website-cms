@@ -20,7 +20,7 @@ export const rbac = (requiredPermissions: string | string[]) => {
       }
 
       // super_admin has all permissions
-      if (req.roleCode === 'super_admin') {
+      if (req.roleCode.toLowerCase() === 'super_admin') {
         next();
         return;
       }

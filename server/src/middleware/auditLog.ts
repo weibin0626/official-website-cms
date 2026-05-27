@@ -22,15 +22,15 @@ export const auditLog = (config: AuditLogConfig) => {
     res.send = function (data: any): Response {
       // Only log successful operations
       const statusCode = res.statusCode;
-      if (statusCode >= 200 && statusCode < 300 && req.userId) {
+      if (statusCode >= 200 && statusCode < 300 && (req as any).userId) {
         const resourceId = config.getResourceId ? config.getResourceId(req) : (req.params as any).id as string | undefined;
         const detail = config.getDetail ? config.getDetail(req) : undefined;
 
         // Fire and forget - don't block the response
         prisma.auditLog.create({
           data: {
-            siteId: req.siteId || null,
-            userId: req.userId || null,
+            siteId: (req as any).siteId || null,
+            userId: (req as any).userId || null,
             action: config.action,
             resource: config.resource,
             resourceId: resourceId || null,

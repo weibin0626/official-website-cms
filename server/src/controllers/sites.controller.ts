@@ -4,7 +4,7 @@ import { successResponse } from '../utils/helpers';
 
 export const listSites = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const sites = await sitesService.listSites(req.userId, req.roleCode);
+    const sites = await sitesService.listSites((req as any).userId, (req as any).roleCode);
     res.json(successResponse(sites));
   } catch (error) {
     next(error);

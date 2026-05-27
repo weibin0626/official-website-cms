@@ -4,7 +4,7 @@ import { successResponse } from '../utils/helpers';
 
 export const listQuickLinks = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.siteId!;
+    const siteId = (req as any).siteId!;
     const links = await quicklinksService.listQuickLinks(siteId);
     res.json(successResponse(links));
   } catch (error) {
@@ -14,7 +14,7 @@ export const listQuickLinks = async (req: Request, res: Response, next: NextFunc
 
 export const createQuickLink = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.siteId!;
+    const siteId = (req as any).siteId!;
     const link = await quicklinksService.createQuickLink({
       siteId,
       name: req.body.name,

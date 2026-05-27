@@ -4,7 +4,7 @@ import { successResponse, parsePagination } from '../utils/helpers';
 
 export const listRecycleBin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.siteId!;
+    const siteId = (req as any).siteId!;
     const { page, pageSize } = parsePagination(req.query as any);
     const result = await recyclebinService.listRecycleBin(siteId, page, pageSize);
     res.json(successResponse(result));

@@ -7,7 +7,7 @@ import { successResponse } from '../utils/helpers';
  */
 export const listMedia = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.siteId!;
+    const siteId = (req as any).siteId!;
     const page = parseInt(req.query.page as string, 10) || 1;
     const pageSize = parseInt(req.query.pageSize as string, 10) || 20;
     const mimetype = req.query.mimetype as string | undefined;
@@ -24,8 +24,8 @@ export const listMedia = async (req: Request, res: Response, next: NextFunction)
  */
 export const uploadMedia = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.siteId!;
-    const userId = req.userId!;
+    const siteId = (req as any).siteId!;
+    const userId = (req as any).userId!;
     const file = req.file;
 
     if (!file) {
@@ -46,7 +46,7 @@ export const uploadMedia = async (req: Request, res: Response, next: NextFunctio
 export const deleteMedia = async (req: Request<{ id: string }>, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const siteId = req.siteId!;
+    const siteId = (req as any).siteId!;
     await mediaService.deleteMedia(id, siteId);
     res.json(successResponse(null, '删除成功'));
   } catch (error) {

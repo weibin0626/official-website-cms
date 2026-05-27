@@ -23,11 +23,16 @@ export const authMiddleware = (req: Request, _res: Response, next: NextFunction)
     const token = authHeader.substring(7);
     const decoded = jwt.verify(token, config.jwtSecret) as JwtPayload;
 
-    req.userId = decoded.userId;
-    req.username = decoded.username;
-    req.roleCode = decoded.roleCode;
-    req.siteIds = decoded.siteIds;
-    req.currentSiteId = decoded.currentSiteId;
+    // @ts-ignore - Custom properties added to Express Request
+    (req as any).userId = decoded.userId;
+    // @ts-ignore
+    (req as any).username = decoded.username;
+    // @ts-ignore
+    (req as any).roleCode = decoded.roleCode;
+    // @ts-ignore
+    (req as any).siteIds = decoded.siteIds;
+    // @ts-ignore
+    (req as any).currentSiteId = decoded.currentSiteId;
 
     next();
   } catch (error: any) {
@@ -48,11 +53,16 @@ export const optionalAuth = (req: Request, _res: Response, next: NextFunction): 
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7);
       const decoded = jwt.verify(token, config.jwtSecret) as JwtPayload;
-      req.userId = decoded.userId;
-      req.username = decoded.username;
-      req.roleCode = decoded.roleCode;
-      req.siteIds = decoded.siteIds;
-      req.currentSiteId = decoded.currentSiteId;
+      // @ts-ignore - Custom properties added to Express Request
+      (req as any).userId = decoded.userId;
+      // @ts-ignore
+      (req as any).username = decoded.username;
+      // @ts-ignore
+      (req as any).roleCode = decoded.roleCode;
+      // @ts-ignore
+      (req as any).siteIds = decoded.siteIds;
+      // @ts-ignore
+      (req as any).currentSiteId = decoded.currentSiteId;
     }
   } catch {
     // Ignore errors for optional auth

@@ -4,7 +4,7 @@ import { successResponse } from '../utils/helpers';
 
 export const listDepartments = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.siteId!;
+    const siteId = (req as any).siteId!;
     const departments = await departmentsService.listDepartments(siteId);
     res.json(successResponse(departments));
   } catch (error) {
@@ -14,7 +14,7 @@ export const listDepartments = async (req: Request, res: Response, next: NextFun
 
 export const createDepartment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.siteId!;
+    const siteId = (req as any).siteId!;
     const department = await departmentsService.createDepartment({
       siteId,
       parentId: req.body.parentId,

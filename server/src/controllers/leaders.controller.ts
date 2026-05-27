@@ -4,7 +4,7 @@ import { successResponse } from '../utils/helpers';
 
 export const listLeaders = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.siteId!;
+    const siteId = (req as any).siteId!;
     const leaders = await leadersService.listLeaders(siteId);
     res.json(successResponse(leaders));
   } catch (error) {
@@ -14,7 +14,7 @@ export const listLeaders = async (req: Request, res: Response, next: NextFunctio
 
 export const createLeader = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.siteId!;
+    const siteId = (req as any).siteId!;
     const leader = await leadersService.createLeader({
       siteId,
       name: req.body.name,

@@ -7,7 +7,7 @@ import { successResponse } from '../utils/helpers';
  */
 export const listArticles = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.siteId!;
+    const siteId = (req as any).siteId!;
     const page = parseInt(req.query.page as string, 10) || 1;
     const pageSize = parseInt(req.query.pageSize as string, 10) || 10;
     const status = req.query.status as string | undefined;
@@ -39,8 +39,8 @@ export const getArticleById = async (req: Request<{ id: string }>, res: Response
  */
 export const createArticle = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.siteId!;
-    const userId = req.userId!;
+    const siteId = (req as any).siteId!;
+    const userId = (req as any).userId!;
     const data = {
       siteId,
       nodeId: req.body.nodeId || null,
@@ -92,8 +92,8 @@ export const updateArticle = async (req: Request<{ id: string }>, res: Response,
 export const deleteArticle = async (req: Request<{ id: string }>, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const siteId = req.siteId!;
-    const userId = req.userId;
+    const siteId = (req as any).siteId!;
+    const userId = (req as any).userId;
     await articlesService.deleteArticle(id, siteId, userId);
     res.json(successResponse(null, '删除成功'));
   } catch (error) {
@@ -121,7 +121,7 @@ export const auditArticle = async (req: Request<{ id: string }>, res: Response, 
   try {
     const { id } = req.params;
     const { action, reason } = req.body;
-    const reviewerId = req.userId!;
+    const reviewerId = (req as any).userId!;
 
     if (!action || !['approve', 'reject'].includes(action)) {
       res.status(400).json({ code: 1006, data: null, message: '审核操作无效，必须为 approve 或 reject' });

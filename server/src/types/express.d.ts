@@ -1,17 +1,13 @@
-import { Request } from 'express';
+import 'express';
 
-declare global {
-  namespace Express {
-    interface Request {
-      userId?: string;
-      username?: string;
-      roleCode?: string;
-      siteIds?: string[];
-      currentSiteId?: string;
-      siteId?: string;
-      permissions?: string[];
-    }
+declare module 'express' {
+  export interface Request {
+    userId?: string;
+    username?: string;
+    roleCode?: string;
+    siteIds?: string[];
+    currentSiteId?: string;
+    siteId?: string;
+    permissions?: string[];
   }
 }
-
-export {};

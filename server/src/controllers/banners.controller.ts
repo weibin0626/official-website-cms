@@ -4,7 +4,7 @@ import { successResponse } from '../utils/helpers';
 
 export const listBanners = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.siteId!;
+    const siteId = (req as any).siteId!;
     const banners = await bannersService.listBanners(siteId);
     res.json(successResponse(banners));
   } catch (error) {
@@ -14,7 +14,7 @@ export const listBanners = async (req: Request, res: Response, next: NextFunctio
 
 export const createBanner = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.siteId!;
+    const siteId = (req as any).siteId!;
     const banner = await bannersService.createBanner({
       siteId,
       title: req.body.title,

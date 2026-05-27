@@ -4,7 +4,7 @@ import { successResponse } from '../utils/helpers';
 
 export const listTeachers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.siteId!;
+    const siteId = (req as any).siteId!;
     const teachers = await teachersService.listTeachers(siteId);
     res.json(successResponse(teachers));
   } catch (error) {
@@ -14,7 +14,7 @@ export const listTeachers = async (req: Request, res: Response, next: NextFuncti
 
 export const createTeacher = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.siteId!;
+    const siteId = (req as any).siteId!;
     const teacher = await teachersService.createTeacher({
       siteId,
       name: req.body.name,

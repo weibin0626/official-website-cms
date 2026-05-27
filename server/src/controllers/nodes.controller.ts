@@ -7,7 +7,7 @@ import { successResponse } from '../utils/helpers';
  */
 export const listNodes = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.siteId!;
+    const siteId = (req as any).siteId!;
     const tree = await nodesService.listNodes(siteId);
     res.json(successResponse(tree));
   } catch (error) {
@@ -33,7 +33,7 @@ export const getNodeById = async (req: Request<{ id: string }>, res: Response, n
  */
 export const createNode = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.siteId!;
+    const siteId = (req as any).siteId!;
     const data = {
       siteId,
       parentId: req.body.parentId || null,

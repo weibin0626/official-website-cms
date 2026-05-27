@@ -15,7 +15,8 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
 
 export const logout = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const userId = req.userId!;
+    // @ts-ignore - Custom property added by auth middleware
+    const userId = (req as any).userId!;
     await authService.logout(userId);
     res.json(successResponse(null, '登出成功'));
   } catch (error) {
@@ -25,7 +26,8 @@ export const logout = async (req: Request, res: Response, next: NextFunction): P
 
 export const getCurrentUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const userId = req.userId!;
+    // @ts-ignore - Custom property added by auth middleware
+    const userId = (req as any).userId!;
     const user = await authService.getCurrentUser(userId);
     res.json(successResponse(user));
   } catch (error) {
@@ -35,7 +37,8 @@ export const getCurrentUser = async (req: Request, res: Response, next: NextFunc
 
 export const changePassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const userId = req.userId!;
+    // @ts-ignore - Custom property added by auth middleware
+    const userId = (req as any).userId!;
     const { oldPassword, newPassword } = req.body;
     await authService.changePassword(userId, oldPassword, newPassword);
     res.json(successResponse(null, '密码修改成功'));

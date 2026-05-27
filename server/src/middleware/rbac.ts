@@ -14,13 +14,13 @@ const prisma = new PrismaClient();
 export const rbac = (requiredPermissions: string | string[]) => {
   return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
     try {
-      if (!req.userId || !req.roleCode) {
+      if (!(req as any).userId || !(req as any).roleCode) {
         next(createAppError('未认证', 401, 1003));
         return;
       }
 
       // super_admin has all permissions
-      if (req.roleCode.toLowerCase() === 'super_admin') {
+      if ((req as any).roleCode.toLowerCase() === 'super_admin') {
         next();
         return;
       }
@@ -29,7 +29,7 @@ export const rbac = (requiredPermissions: string | string[]) => {
 
       // Get user's permissions from database
       const siteUser = await prisma.siteUser.findFirst({
-        where: { userId: req.userId, siteId: req.siteId },
+        where: { userId: (req as any).userId, siteId: (req as any).siteId },
         include: {
           role: {
             include: {
@@ -68,7 +68,7 @@ export const rbac = (requiredPermissions: string | string[]) => {
       }
 
       // Attach permissions to request for later use
-      req.permissions = userPermissions;
+      (req as any).permissions = userPermissions;
       next();
     } catch (error) {
       next(error);

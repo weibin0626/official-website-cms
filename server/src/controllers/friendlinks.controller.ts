@@ -4,7 +4,7 @@ import { successResponse } from '../utils/helpers';
 
 export const listFriendLinks = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.siteId!;
+    const siteId = (req as any).siteId!;
     const links = await friendlinksService.listFriendLinks(siteId);
     res.json(successResponse(links));
   } catch (error) {
@@ -14,7 +14,7 @@ export const listFriendLinks = async (req: Request, res: Response, next: NextFun
 
 export const createFriendLink = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.siteId!;
+    const siteId = (req as any).siteId!;
     const link = await friendlinksService.createFriendLink({
       siteId,
       name: req.body.name,

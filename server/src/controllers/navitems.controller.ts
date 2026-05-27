@@ -4,7 +4,7 @@ import { successResponse } from '../utils/helpers';
 
 export const listNavItems = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.siteId!;
+    const siteId = (req as any).siteId!;
     const navItems = await navitemsService.listNavItems(siteId);
     res.json(successResponse(navItems));
   } catch (error) {
@@ -14,7 +14,7 @@ export const listNavItems = async (req: Request, res: Response, next: NextFuncti
 
 export const createNavItem = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.siteId!;
+    const siteId = (req as any).siteId!;
     const navItem = await navitemsService.createNavItem({
       siteId,
       parentId: req.body.parentId,

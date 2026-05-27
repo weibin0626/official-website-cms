@@ -5,7 +5,7 @@ export const siteContextMiddleware = (req: Request, _res: Response, next: NextFu
   // Priority: query param > header > JWT currentSiteId
   const querySiteId = req.query.siteId as string | undefined;
   const headerSiteId = req.headers['x-site-id'] as string | undefined;
-  const jwtSiteId = req.currentSiteId;
+  const jwtSiteId = (req as any).currentSiteId;
 
   const siteId = querySiteId || headerSiteId || jwtSiteId;
 
@@ -15,14 +15,14 @@ export const siteContextMiddleware = (req: Request, _res: Response, next: NextFu
   }
 
   // If user is authenticated, verify the siteId is in their allowed sites
-  if (req.siteIds && req.siteIds.length > 0 && req.roleCode !== 'super_admin') {
-    if (!req.siteIds.includes(siteId)) {
+  if ((req as any).siteIds && (req as any).siteIds.length > 0 && (req as any).roleCode !== 'super_admin') {
+    if (!(req as any).siteIds.includes(siteId)) {
       next(createAppError('无权访问该站点', 403, 1004));
       return;
     }
   }
 
-  req.siteId = siteId;
+  (req as any).siteId = siteId;
   next();
 };
 

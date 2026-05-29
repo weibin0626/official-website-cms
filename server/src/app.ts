@@ -10,16 +10,31 @@ const app = express();
 
 // 安全中间件
 app.use(helmet());
-app.use(cors({
-  origin: '*',
+            app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g. curl, mobile apps, same-origin)
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://127.0.0.1:5173',
+      'http://localhost:3002',
+      'http://127.0.0.1:3002',
+    ];
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS policy: origin not allowed'), false);
+    }
+  },
   credentials: true,
 }));
 
-// 速率限制
+// 速率限制（开发环境跳过，避免前端调试时被误封）
+const isDev = process.env.NODE_ENV === 'development';
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 1000,
+  max: isDev ? 10000 : 1000,
   message: { code: 4290, data: null, message: '请求过于频繁，请稍后重试' },
+  skip: (_req) => isDev, // 开发环境完全跳过速率限制
 });
 app.use('/api', limiter);
 

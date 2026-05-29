@@ -19,10 +19,11 @@ import Toast, { useToast } from '../../components/Common/Toast';
 import { usePermission } from '../../hooks/usePermission';
 import * as sitesApi from '../../api/sites';
 import type { Site } from '../../api/sites';
+import { useSiteStore } from '../../stores/siteStore';
 
 const SitesPage: React.FC = () => {
   const { isSuperAdmin } = usePermission();
-  const [sites, setSites] = useState<Site[]>([]);
+  const siteStore = useSiteStore();
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editSite, setEditSite] = useState<Site | null>(null);
@@ -47,21 +48,21 @@ const SitesPage: React.FC = () => {
     status: 'ACTIVE',
   });
 
-  const fetchSites = useCallback(async () => {
+  const fetchSites = async () => {
     setLoading(true);
     try {
       const data = await sitesApi.listSites();
-      setSites(data);
+      siteStore.setSites(data);
     } catch (error: any) {
       toast.showToast(error.message || '获取站点列表失败', 'error');
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
   useEffect(() => {
     fetchSites();
-  }, [fetchSites]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleOpenCreate = () => {
     setEditSite(null);
@@ -189,8 +190,8 @@ const SitesPage: React.FC = () => {
 
       <DataTable
         columns={columns}
-        rows={sites}
-        total={sites.length}
+        rows={siteStore.sites}
+        total={siteStore.sites.length}
         page={1}
         pageSize={100}
         loading={loading}

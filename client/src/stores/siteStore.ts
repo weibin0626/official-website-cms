@@ -12,6 +12,7 @@ interface SiteState {
   switchSite: (siteId: string) => void;
   getCurrentSiteConfig: () => Site | null;
   setCurrentSiteId: (siteId: string) => void;
+  setSites: (sites: Site[]) => void;
 }
 
 export const useSiteStore = create<SiteState>((set, get) => ({
@@ -68,6 +69,15 @@ export const useSiteStore = create<SiteState>((set, get) => ({
       localStorage.setItem('currentSiteId', siteId);
       set({ currentSiteId: siteId, currentSite: site });
     }
+  },
+
+  setSites: (sites: Site[]) => {
+    const { currentSiteId } = get();
+    const currentSite = sites.find((s) => s.id === currentSiteId) || sites[0] || null;
+    if (currentSite) {
+      localStorage.setItem('currentSiteId', currentSite.id);
+    }
+    set({ sites, currentSite, currentSiteId: currentSite?.id || null });
   },
 }));
 

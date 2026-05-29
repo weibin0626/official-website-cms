@@ -1,27 +1,60 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { createAppError } from '../utils/helpers';
 
 const prisma = new PrismaClient();
 
+interface ListSitesOptions {
+  userId?: string;
+  roleCode?: string;
+  page?: number;
+  pageSize?: number;
+  status?: string;
+}
+
+interface ListSitesResult {
+  list: any[];
+  total: number;
+}
+
 /**
- * List sites. Super admin sees all, others see only their associated sites.
+ * List sites with pagination. Super admin sees all, others see only their associated sites.
  */
-export const listSites = async (userId?: string, roleCode?: string) => {
-  if (roleCode === 'super_admin' || !userId) {
-    return prisma.site.findMany({
-      where: { status: 'ACTIVE' },
-      orderBy: { createdAt: 'desc' },
-    });
+export const listSites = async (options: ListSitesOptions): Promise<ListSitesResult> => {
+  const { userId, roleCode, page = 1, pageSize = 10, status } = options;
+  const isSuperAdmin = (roleCode || '').toLowerCase() === 'super_admin';
+  console.log(`[listSites] userId=${userId} roleCode=${roleCode} isSuperAdmin=${isSuperAdmin} page=${page} pageSize=${pageSize}`);
+
+  if (isSuperAdmin || !userId) {
+    // Super admin sees ALL sites (all statuses), with optional status filter
+    const where: Prisma.SiteWhereInput = {};
+    if (status) {
+      where.status = status;
+    }
+    const [list, total] = await Promise.all([
+      prisma.site.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      prisma.site.count({ where }),
+    ]);
+    return { list, total };
   }
 
+  // Non-super-admin: only return sites associated with the user
   const siteUsers = await prisma.siteUser.findMany({
     where: { userId },
-    include: {
-      site: true,
-    },
+    include: { site: true },
   });
 
-  return siteUsers.map((su) => su.site).filter((s) => s && s.status !== 'DELETED');
+  const allSites = siteUsers.map((su) => su.site).filter(Boolean);
+  // In-memory pagination for associated sites
+  const start = (page - 1) * pageSize;
+  return {
+    list: allSites.slice(start, start + pageSize),
+    total: allSites.length,
+  };
 };
 
 /**

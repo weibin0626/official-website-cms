@@ -4,8 +4,17 @@ import { successResponse } from '../utils/helpers';
 
 export const listSites = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const sites = await sitesService.listSites((req as any).userId, (req as any).roleCode);
-    res.json(successResponse(sites));
+    const page = parseInt(req.query.page as string) || 1;
+    const pageSize = parseInt(req.query.pageSize as string) || 10;
+    const status = req.query.status as string | undefined;
+    const result = await sitesService.listSites({
+      userId: (req as any).userId,
+      roleCode: (req as any).roleCode,
+      page,
+      pageSize,
+      status,
+    });
+    res.json(successResponse(result));
   } catch (error) {
     next(error);
   }

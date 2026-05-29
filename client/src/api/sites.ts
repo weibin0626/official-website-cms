@@ -37,9 +37,16 @@ export interface CreateSiteParams {
 
 export interface UpdateSiteParams extends Partial<CreateSiteParams> {}
 
+export interface PaginatedSites {
+  list: Site[];
+  total: number;
+}
+
 export const listSites = async (): Promise<Site[]> => {
   const response = await apiClient.get('/sites');
-  return response.data.data;
+  const data = response.data.data;
+  // 后端可能返回 { list, total } 分页格式，也可能直接返回数组
+  return Array.isArray(data) ? data : data.list || [];
 };
 
 export const getSite = async (id: string): Promise<Site> => {

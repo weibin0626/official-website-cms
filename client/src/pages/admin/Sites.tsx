@@ -8,12 +8,25 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  Switch,
+  FormControlLabel,
   AlertColor,
+  Grid,
+  Card,
+  CardContent,
+  CardActions,
+  Avatar,
+  Chip,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import DataTable, { Column } from '../../components/Common/DataTable';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import PhoneIcon from '@mui/icons-material/Phone';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import LanguageIcon from '@mui/icons-material/Language';
 import ConfirmDialog from '../../components/Common/ConfirmDialog';
 import Toast, { useToast } from '../../components/Common/Toast';
 import { usePermission } from '../../hooks/usePermission';
@@ -31,6 +44,7 @@ const SitesPage: React.FC = () => {
     open: false,
     site: null,
   });
+  const [showInactive, setShowInactive] = useState(false);
   const toast = useToast();
 
   // Form state
@@ -51,7 +65,7 @@ const SitesPage: React.FC = () => {
   const fetchSites = async () => {
     setLoading(true);
     try {
-      const data = await sitesApi.listSites();
+      const data = await sitesApi.listSites(showInactive ? undefined : 'ACTIVE');
       siteStore.setSites(data);
     } catch (error: any) {
       toast.showToast(error.message || '获取站点列表失败', 'error');
@@ -62,7 +76,7 @@ const SitesPage: React.FC = () => {
 
   useEffect(() => {
     fetchSites();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [showInactive]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleOpenCreate = () => {
     setEditSite(null);
@@ -116,60 +130,33 @@ const SitesPage: React.FC = () => {
     }
   };
 
-  const handleDelete = async () => {
-    if (!deleteConfirm.site) return;
+  const handleSwitchSite = async (site: Site) => {
     try {
-      await sitesApi.deleteSite(deleteConfirm.site.id);
-      toast.showToast('站点删除成功', 'success');
-      fetchSites();
+      siteStore.setCurrentSiteId(site.id);
+      toast.showToast(`已切换到站点: ${site.nameCn}`, 'success');
     } catch (error: any) {
-      toast.showToast(error.message || '删除失败', 'error');
+      toast.showToast(error.message || '切换站点失败', 'error');
     }
-    setDeleteConfirm({ open: false, site: null });
   };
 
-  const columns: Column<Site>[] = [
-    { id: 'name', label: '标识', width: 120 },
-    { id: 'nameCn', label: '中文名', width: 180 },
-    { id: 'primaryColor', label: '主色', width: 100, render: (row) => (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Box sx={{ width: 16, height: 16, borderRadius: '50%', bgcolor: row.primaryColor }} />
-        {row.primaryColor}
-      </Box>
-    )},
-    { id: 'status', label: '状态', width: 80, render: (row) => (
-      <Typography
-        variant="body2"
-        sx={{
-          color: row.status === 'ACTIVE' ? 'success.main' : 'text.disabled',
-          fontWeight: 600,
-          fontSize: '0.75rem',
-        }}
-      >
-        {row.status === 'ACTIVE' ? '启用' : '停用'}
-      </Typography>
-    )},
-    { id: 'phone', label: '电话', width: 150 },
-    { id: 'actions', label: '操作', width: 150, align: 'center', render: (row) => (
-      <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
-        <Button
-          size="small"
-          startIcon={<EditIcon />}
-          onClick={() => handleOpenEdit(row)}
-        >
-          编辑
-        </Button>
-        <Button
-          size="small"
-          color="error"
-          startIcon={<DeleteIcon />}
-          onClick={() => setDeleteConfirm({ open: true, site: row })}
-        >
-          删除
-        </Button>
-      </Box>
-    )},
-  ];
+  const handleDelete = async () => {
+    if (!deleteConfirm.site) {
+      console.error('[handleDelete] No site selected!');
+      return;
+    }
+    console.log('[handleDelete] Deleting site:', deleteConfirm.site.id, deleteConfirm.site.nameCn);
+    try {
+      await sitesApi.deleteSite(deleteConfirm.site.id);
+      console.log('[handleDelete] Delete API success');
+      toast.showToast('站点删除成功', 'success');
+      setDeleteConfirm({ open: false, site: null });
+      await fetchSites();
+    } catch (error: any) {
+      console.error('[handleDelete] Delete failed:', error);
+      toast.showToast(error.message || '删除失败', 'error');
+      setDeleteConfirm({ open: false, site: null });
+    }
+  };
 
   if (!isSuperAdmin) {
     return (
@@ -179,27 +166,191 @@ const SitesPage: React.FC = () => {
     );
   }
 
+  const currentSiteId = siteStore.currentSiteId;
+
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h5" fontWeight={600}>站点管理</Typography>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenCreate}>
-          新增站点
-        </Button>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={showInactive}
+                onChange={(_, checked) => setShowInactive(checked)}
+              />
+            }
+            label={<Typography variant="body2" color="text.secondary">显示停用站点</Typography>}
+          />
+          <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenCreate}>
+            新增站点
+          </Button>
+        </Box>
       </Box>
 
-      <DataTable
-        columns={columns}
-        rows={siteStore.sites}
-        total={siteStore.sites.length}
-        page={1}
-        pageSize={100}
-        loading={loading}
-        searchable={false}
-        getRowId={(row) => row.id}
-        onPageChange={() => {}}
-        onPageSizeChange={() => {}}
-      />
+      {loading ? (
+        <Box sx={{ textAlign: 'center', py: 8 }}>
+          <Typography>加载中...</Typography>
+        </Box>
+      ) : (
+        <Grid container spacing={3}>
+          {siteStore.sites.map((site) => {
+            const isCurrentSite = site.id === currentSiteId;
+            const firstChar = site.nameCn.charAt(0).toUpperCase();
+            
+            return (
+              <Grid item xs={12} sm={6} md={4} key={site.id}>
+                <Card
+                  sx={{
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    border: isCurrentSite ? '2px solid' : '1px solid',
+                    borderColor: isCurrentSite ? 'primary.main' : 'divider',
+                    transition: 'all 0.2s',
+                    '&:hover': {
+                      borderColor: 'primary.main',
+                      boxShadow: 3,
+                    },
+                  }}
+                >
+                  <CardContent sx={{ flexGrow: 1 }}>
+                    {/* Card Header: Avatar + Site Name + Site ID + Current Tag */}
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 2 }}>
+                      <Avatar
+                        sx={{
+                          bgcolor: site.primaryColor,
+                          color: '#fff',
+                          width: 48,
+                          height: 48,
+                          fontSize: '1.2rem',
+                          fontWeight: 600,
+                        }}
+                      >
+                        {firstChar}
+                      </Avatar>
+                      <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                          <Typography variant="h6" fontWeight={600} noWrap>
+                            {site.nameCn}
+                          </Typography>
+                          {isCurrentSite && (
+                            <Chip
+                              label="当前"
+                              size="small"
+                              color="primary"
+                              sx={{ height: 20, fontSize: '0.7rem' }}
+                            />
+                          )}
+                        </Box>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                          {site.name}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            display: 'inline-block',
+                            px: 1,
+                            py: 0.2,
+                            borderRadius: 1,
+                            bgcolor: site.status === 'ACTIVE' ? 'success.light' : 'grey.300',
+                            color: site.status === 'ACTIVE' ? 'success.dark' : 'text.disabled',
+                            fontSize: '0.7rem',
+                            fontWeight: 600,
+                            mt: 0.5,
+                          }}
+                        >
+                          {site.status === 'ACTIVE' ? '启用' : '停用'}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    {/* Card Body: Contact Info */}
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      {site.phone && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <PhoneIcon fontSize="small" color="action" />
+                          <Typography variant="body2" color="text.secondary">
+                            {site.phone}
+                          </Typography>
+                        </Box>
+                      )}
+                      {site.address && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <LocationOnIcon fontSize="small" color="action" />
+                          <Typography variant="body2" color="text.secondary" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {site.address}
+                          </Typography>
+                        </Box>
+                      )}
+                      {site.domain && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <LanguageIcon fontSize="small" color="action" />
+                          <Typography variant="body2" color="text.secondary" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {site.domain}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Box>
+                  </CardContent>
+
+                  {/* Card Actions */}
+                  <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
+                    <Button
+                      size="small"
+                      variant={isCurrentSite ? 'contained' : 'outlined'}
+                      onClick={() => handleSwitchSite(site)}
+                      disabled={isCurrentSite}
+                    >
+                      {isCurrentSite ? '当前站点' : '切换'}
+                    </Button>
+                    <Box>
+                      <Tooltip title="编辑">
+                        <IconButton
+                          size="small"
+                          onClick={() => handleOpenEdit(site)}
+                          color="primary"
+                        >
+                          <EditIcon />
+                        </IconButton>
+                      </Tooltip>
+                      {site.status === 'ACTIVE' ? (
+                        <Tooltip title="删除">
+                          <IconButton
+                            size="small"
+                            onClick={() => setDeleteConfirm({ open: true, site })}
+                            color="error"
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Tooltip>
+                      ) : (
+                        <Tooltip title="启用">
+                          <IconButton
+                            size="small"
+                            onClick={async () => {
+                              try {
+                                await sitesApi.updateSite(site.id, { status: 'ACTIVE' });
+                                toast.showToast('站点已启用', 'success');
+                                fetchSites();
+                              } catch (e: any) {
+                                toast.showToast(e.message || '启用失败', 'error');
+                              }
+                            }}
+                            color="success"
+                          >
+                            <CheckCircleIcon />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </Box>
+                  </CardActions>
+                </Card>
+              </Grid>
+            );
+          })}
+        </Grid>
+      )}
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>

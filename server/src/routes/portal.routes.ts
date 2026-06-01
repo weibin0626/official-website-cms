@@ -1,9 +1,13 @@
 import { Router } from 'express';
 import * as portalController from '../controllers/portal.controller';
+import { optionalAuth } from '../middleware/auth';
 
 const router = Router();
 
-// Public portal routes — no auth required
+// 加载 optionalAuth：通过 Host 头解析域名 → currentSiteId（方案 B）
+router.use(optionalAuth);
+
+// Public portal routes — no login required
 router.get('/home', portalController.getHome);
 router.get('/articles', portalController.getArticleList);
 router.get('/articles/:id', portalController.getArticleDetail);

@@ -80,6 +80,7 @@ export const createSite = async (data: {
   primaryColor?: string;
   secondaryColor?: string;
   phone?: string;
+  email?: string;
   address?: string;
   icp?: string;
   police?: string;
@@ -107,6 +108,7 @@ export const updateSite = async (id: string, data: {
   primaryColor?: string;
   secondaryColor?: string;
   phone?: string;
+  email?: string;
   address?: string;
   icp?: string;
   police?: string;

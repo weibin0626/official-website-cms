@@ -10,6 +10,7 @@ export interface Site {
   primaryColor: string;
   secondaryColor: string | null;
   phone: string | null;
+  email: string | null;
   address: string | null;
   icp: string | null;
   police: string | null;
@@ -28,6 +29,7 @@ export interface CreateSiteParams {
   primaryColor?: string;
   secondaryColor?: string;
   phone?: string;
+  email?: string;
   address?: string;
   icp?: string;
   police?: string;
@@ -42,8 +44,9 @@ export interface PaginatedSites {
   total: number;
 }
 
-export const listSites = async (): Promise<Site[]> => {
-  const response = await apiClient.get('/sites');
+export const listSites = async (status?: string): Promise<Site[]> => {
+  const url = status ? `/sites?status=${status}` : '/sites';
+  const response = await apiClient.get(url);
   const data = response.data.data;
   // 后端可能返回 { list, total } 分页格式，也可能直接返回数组
   return Array.isArray(data) ? data : data.list || [];

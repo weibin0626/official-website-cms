@@ -3,11 +3,21 @@ import * as portalService from '../services/portal.service';
 import { successResponse } from '../utils/helpers';
 
 /**
+ * Get siteId from either domain resolution (req.currentSiteId)
+ * or query parameter (?siteId=...). Domain resolution takes priority.
+ */
+function resolveSiteId(req: Request): string | undefined {
+  const fromDomain = (req as any).currentSiteId as string | undefined;
+  const fromQuery = req.query.siteId as string | undefined;
+  return fromDomain || fromQuery || undefined;
+}
+
+/**
  * GET /api/portal/home — Home page data
  */
 export const getHome = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.query.siteId as string | undefined;
+    const siteId = resolveSiteId(req);
     const data = await portalService.getSiteHome(siteId);
     res.json(successResponse(data));
   } catch (error) {
@@ -20,7 +30,7 @@ export const getHome = async (req: Request, res: Response, next: NextFunction): 
  */
 export const getArticleList = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.query.siteId as string | undefined;
+    const siteId = resolveSiteId(req);
     const page = parseInt(req.query.page as string, 10) || 1;
     const pageSize = parseInt(req.query.pageSize as string, 10) || 20;
     const nodeId = req.query.nodeId as string | undefined;
@@ -81,7 +91,7 @@ export const getNodeDetail = async (req: Request<{ id: string }>, res: Response,
  */
 export const getLeaders = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.query.siteId as string | undefined;
+    const siteId = resolveSiteId(req);
     const leaders = await portalService.getLeaders(siteId);
     res.json(successResponse(leaders));
   } catch (error) {
@@ -94,7 +104,7 @@ export const getLeaders = async (req: Request, res: Response, next: NextFunction
  */
 export const getTeachers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.query.siteId as string | undefined;
+    const siteId = resolveSiteId(req);
     const teachers = await portalService.getTeachers(siteId);
     res.json(successResponse(teachers));
   } catch (error) {
@@ -107,7 +117,7 @@ export const getTeachers = async (req: Request, res: Response, next: NextFunctio
  */
 export const getBanners = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.query.siteId as string | undefined;
+    const siteId = resolveSiteId(req);
     const banners = await portalService.getBanners(siteId);
     res.json(successResponse(banners));
   } catch (error) {
@@ -120,7 +130,7 @@ export const getBanners = async (req: Request, res: Response, next: NextFunction
  */
 export const getQuickLinks = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.query.siteId as string | undefined;
+    const siteId = resolveSiteId(req);
     const links = await portalService.getQuickLinks(siteId);
     res.json(successResponse(links));
   } catch (error) {
@@ -133,7 +143,7 @@ export const getQuickLinks = async (req: Request, res: Response, next: NextFunct
  */
 export const getFriendLinks = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.query.siteId as string | undefined;
+    const siteId = resolveSiteId(req);
     const links = await portalService.getFriendLinks(siteId);
     res.json(successResponse(links));
   } catch (error) {
@@ -146,7 +156,7 @@ export const getFriendLinks = async (req: Request, res: Response, next: NextFunc
  */
 export const getNavTree = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = req.query.siteId as string | undefined;
+    const siteId = resolveSiteId(req);
     const navTree = await portalService.getNavTree(siteId);
     res.json(successResponse(navTree));
   } catch (error) {

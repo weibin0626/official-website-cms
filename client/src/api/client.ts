@@ -11,9 +11,10 @@ const apiClient = axios.create({
   withCredentials: true,
 });
 
-// Request interceptor: attach JWT token
+// Request interceptor: attach JWT token + site host
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    // Attach JWT token if present
     const token = localStorage.getItem('token');
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -23,6 +24,14 @@ apiClient.interceptors.request.use(
     const csrfToken = getCookie('csrf-token');
     if (csrfToken && config.headers) {
       config.headers['x-csrf-token'] = csrfToken;
+    }
+
+    // Scheme B: always send browser hostname to backend for domain-based site resolution
+    if (window?.location?.hostname) {
+      const hostname = window.location.hostname;
+      if (hostname !== 'localhost' && hostname !== '127.0.0.1' && config.headers) {
+        config.headers['x-site-host'] = hostname;
+      }
     }
 
     return config;

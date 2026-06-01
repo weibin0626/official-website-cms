@@ -21,6 +21,7 @@ export const createQuickLink = async (data: {
   siteId: string;
   name: string;
   url: string;
+  color?: string;
   icon?: string;
   sort?: number;
   isActive?: boolean;
@@ -35,6 +36,7 @@ export const createQuickLink = async (data: {
       siteId: data.siteId,
       name: data.name,
       url: data.url,
+      color: data.color || null,
       icon: data.icon || null,
       sort: data.sort ?? (maxSort._max.sort ?? -1) + 1,
       isActive: data.isActive ?? true,
@@ -51,6 +53,7 @@ export const updateQuickLink = async (
   data: {
     name?: string;
     url?: string;
+    color?: string;
     icon?: string;
     sort?: number;
     isActive?: boolean;

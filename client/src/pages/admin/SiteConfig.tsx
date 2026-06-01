@@ -24,9 +24,11 @@ const SiteConfigPage: React.FC = () => {
     nameCn: '',
     nameEn: '',
     domain: '',
+    logo: '',
     primaryColor: '#1a3a6b',
     secondaryColor: '',
     phone: '',
+    email: '',
     address: '',
     icp: '',
     police: '',
@@ -39,9 +41,11 @@ const SiteConfigPage: React.FC = () => {
         nameCn: currentSite.nameCn,
         nameEn: currentSite.nameEn || '',
         domain: currentSite.domain || '',
+        logo: currentSite.logo || '',
         primaryColor: currentSite.primaryColor,
         secondaryColor: currentSite.secondaryColor || '',
         phone: currentSite.phone || '',
+        email: currentSite.email || '',
         address: currentSite.address || '',
         icp: currentSite.icp || '',
         police: currentSite.police || '',
@@ -58,9 +62,11 @@ const SiteConfigPage: React.FC = () => {
         nameCn: form.nameCn,
         nameEn: form.nameEn || undefined,
         domain: form.domain || undefined,
+        logo: form.logo || undefined,
         primaryColor: form.primaryColor,
         secondaryColor: form.secondaryColor || undefined,
         phone: form.phone || undefined,
+        email: form.email || undefined,
         address: form.address || undefined,
         icp: form.icp || undefined,
         police: form.police || undefined,
@@ -125,6 +131,16 @@ const SiteConfigPage: React.FC = () => {
           <Grid item xs={12} md={6}>
             <TextField
               fullWidth
+              label="Logo URL"
+              value={form.logo}
+              onChange={(e) => setForm({ ...form, logo: e.target.value })}
+              size="small"
+              placeholder="https://example.com/logo.png"
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
               label="域名"
               value={form.domain}
               onChange={(e) => setForm({ ...form, domain: e.target.value })}
@@ -139,6 +155,16 @@ const SiteConfigPage: React.FC = () => {
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
               size="small"
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="邮箱"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              size="small"
+              placeholder="contact@example.com"
             />
           </Grid>
           <Grid item xs={12}>

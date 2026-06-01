@@ -11,7 +11,8 @@ import PublicIcon from '@mui/icons-material/Public';
 import * as portalApi from '../../api/portal';
 import type { HomeData, PortalArticle } from '../../api/portal';
 import { formatDate, truncateText, stripHtml } from '../../utils/formatters';
-import { DEFAULT_SITE_ID, PORTAL_MAX_WIDTH } from '../../utils/constants';
+import { PORTAL_MAX_WIDTH } from '../../utils/constants';
+import { useSiteStore } from '../../stores/siteStore';
 
 /** Auto-play banner carousel */
 const BannerCarousel: React.FC<{ banners: HomeData['banners'] }> = ({ banners }) => {
@@ -269,11 +270,13 @@ const AnimatedCounter: React.FC<{ end: number; label: string; suffix?: string }>
 const HomePage: React.FC = () => {
   const [data, setData] = useState<HomeData | null>(null);
   const [loading, setLoading] = useState(true);
+  const { currentSiteId } = useSiteStore();
 
   useEffect(() => {
     const loadHome = async () => {
       try {
-        const result = await portalApi.getHomeData(DEFAULT_SITE_ID || undefined);
+        // Do NOT pass siteId; backend resolves site via X-Site-Host header (Scheme B)
+        const result = await portalApi.getHomeData();
         setData(result);
       } catch (err) {
         console.error('Failed to load home data:', err);

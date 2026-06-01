@@ -7,7 +7,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import * as portalApi from '../../api/portal';
 import type { PaginatedArticles, PortalArticle } from '../../api/portal';
 import { formatDate, truncateText, stripHtml } from '../../utils/formatters';
-import { DEFAULT_SITE_ID, PORTAL_MAX_WIDTH, PORTAL_PAGE_SIZE } from '../../utils/constants';
+import { PORTAL_MAX_WIDTH, PORTAL_PAGE_SIZE } from '../../utils/constants';
 
 /** Breadcrumb component */
 const Breadcrumb: React.FC<{ items: Array<{ label: string; to?: string }> }> = ({ items }) => (
@@ -109,13 +109,13 @@ const NewsListPage: React.FC = () => {
   const loadArticles = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await portalApi.getArticleList({
-        siteId: DEFAULT_SITE_ID || undefined,
-        page,
-        pageSize: PORTAL_PAGE_SIZE,
-        nodeId,
-        keyword,
-      });
+        // No siteId param: backend resolves site via X-Site-Host header
+        const result = await portalApi.getArticleList({
+          page,
+          pageSize: PORTAL_PAGE_SIZE,
+          nodeId,
+          keyword,
+        });
       setArticles(result);
     } catch (err) {
       console.error('Failed to load articles:', err);

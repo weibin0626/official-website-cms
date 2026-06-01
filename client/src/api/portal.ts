@@ -119,19 +119,18 @@ export interface PaginatedArticles {
 
 /**
  * GET /api/portal/home — Fetch home page data
+ * No siteId param: backend resolves site via X-Site-Host header (Scheme B)
  */
-export const getHomeData = async (siteId?: string): Promise<HomeData> => {
-  const params: Record<string, string> = {};
-  if (siteId) params.siteId = siteId;
-  const response = await apiClient.get('/portal/home', { params });
+export const getHomeData = async (): Promise<HomeData> => {
+  const response = await apiClient.get('/portal/home');
   return response.data.data;
 };
 
 /**
  * GET /api/portal/articles — Fetch article list
+ * No siteId param: backend resolves site via X-Site-Host header
  */
 export const getArticleList = async (params: {
-  siteId?: string;
   page?: number;
   pageSize?: number;
   nodeId?: string;
@@ -159,61 +158,55 @@ export const getNodeDetail = async (id: string): Promise<any> => {
 
 /**
  * GET /api/portal/leaders — Fetch leaders
+ * No siteId param: backend resolves site via X-Site-Host header
  */
-export const getLeaders = async (siteId?: string): Promise<any[]> => {
-  const params: Record<string, string> = {};
-  if (siteId) params.siteId = siteId;
-  const response = await apiClient.get('/portal/leaders', { params });
+export const getLeaders = async (): Promise<any[]> => {
+  const response = await apiClient.get('/portal/leaders');
   return response.data.data;
 };
 
 /**
  * GET /api/portal/teachers — Fetch teachers
+ * No siteId param: backend resolves site via X-Site-Host header
  */
-export const getTeachers = async (siteId?: string): Promise<any[]> => {
-  const params: Record<string, string> = {};
-  if (siteId) params.siteId = siteId;
-  const response = await apiClient.get('/portal/teachers', { params });
+export const getTeachers = async (): Promise<any[]> => {
+  const response = await apiClient.get('/portal/teachers');
   return response.data.data;
 };
 
 /**
  * GET /api/portal/banners — Fetch banners
+ * No siteId param: backend resolves site via X-Site-Host header
  */
-export const getBanners = async (siteId?: string): Promise<any[]> => {
-  const params: Record<string, string> = {};
-  if (siteId) params.siteId = siteId;
-  const response = await apiClient.get('/portal/banners', { params });
+export const getBanners = async (): Promise<any[]> => {
+  const response = await apiClient.get('/portal/banners');
   return response.data.data;
 };
 
 /**
  * GET /api/portal/quicklinks — Fetch quick links
+ * No siteId param: backend resolves site via X-Site-Host header
  */
-export const getQuickLinks = async (siteId?: string): Promise<any[]> => {
-  const params: Record<string, string> = {};
-  if (siteId) params.siteId = siteId;
-  const response = await apiClient.get('/portal/quicklinks', { params });
+export const getQuickLinks = async (): Promise<any[]> => {
+  const response = await apiClient.get('/portal/quicklinks');
   return response.data.data;
 };
 
 /**
  * GET /api/portal/friendlinks — Fetch friend links
+ * No siteId param: backend resolves site via X-Site-Host header
  */
-export const getFriendLinks = async (siteId?: string): Promise<any[]> => {
-  const params: Record<string, string> = {};
-  if (siteId) params.siteId = siteId;
-  const response = await apiClient.get('/portal/friendlinks', { params });
+export const getFriendLinks = async (): Promise<any[]> => {
+  const response = await apiClient.get('/portal/friendlinks');
   return response.data.data;
 };
 
 /**
  * GET /api/portal/nav — Fetch navigation tree
+ * No siteId param: backend resolves site via X-Site-Host header
  */
-export const getNavTree = async (siteId?: string): Promise<NavTreeNode[]> => {
-  const params: Record<string, string> = {};
-  if (siteId) params.siteId = siteId;
-  const response = await apiClient.get('/portal/nav', { params });
+export const getNavTree = async (): Promise<NavTreeNode[]> => {
+  const response = await apiClient.get('/portal/nav');
   return response.data.data;
 };
 

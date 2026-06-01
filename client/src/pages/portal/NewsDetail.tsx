@@ -10,7 +10,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import * as portalApi from '../../api/portal';
 import type { PortalArticleDetail } from '../../api/portal';
 import { formatDate } from '../../utils/formatters';
-import { DEFAULT_SITE_ID, PORTAL_MAX_WIDTH } from '../../utils/constants';
+import { PORTAL_MAX_WIDTH } from '../../utils/constants';
 
 /** Breadcrumb */
 const Breadcrumb: React.FC<{ items: Array<{ label: string; to?: string }> }> = ({ items }) => (

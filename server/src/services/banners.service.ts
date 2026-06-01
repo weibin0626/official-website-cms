@@ -20,6 +20,7 @@ export const listBanners = async (siteId: string) => {
 export const createBanner = async (data: {
   siteId: string;
   title: string;
+  subtitle?: string;
   imageUrl: string;
   linkUrl?: string;
   sort?: number;
@@ -35,6 +36,7 @@ export const createBanner = async (data: {
     data: {
       siteId: data.siteId,
       title: data.title,
+      subtitle: data.subtitle || null,
       imageUrl: data.imageUrl,
       linkUrl: data.linkUrl || null,
       sort: data.sort ?? (maxSort._max.sort ?? -1) + 1,
@@ -51,6 +53,7 @@ export const updateBanner = async (
   id: string,
   data: {
     title?: string;
+    subtitle?: string;
     imageUrl?: string;
     linkUrl?: string;
     sort?: number;

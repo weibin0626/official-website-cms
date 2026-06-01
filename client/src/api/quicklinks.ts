@@ -5,6 +5,7 @@ export interface QuickLink {
   siteId: string;
   name: string;
   url: string;
+  color: string | null;
   icon: string | null;
   sort: number;
   isActive: boolean;
@@ -15,6 +16,7 @@ export interface QuickLink {
 export interface CreateQuickLinkParams {
   name: string;
   url: string;
+  color?: string;
   icon?: string;
   sort?: number;
   isActive?: boolean;
@@ -23,6 +25,7 @@ export interface CreateQuickLinkParams {
 export interface UpdateQuickLinkParams {
   name?: string;
   url?: string;
+  color?: string;
   icon?: string;
   sort?: number;
   isActive?: boolean;

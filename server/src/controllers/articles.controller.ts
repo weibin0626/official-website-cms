@@ -39,7 +39,7 @@ export const getArticleById = async (req: Request<{ id: string }>, res: Response
  */
 export const createArticle = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const siteId = (req as any).siteId!;
+    const siteId = (req as any).currentSiteId!;
     const userId = (req as any).userId!;
     const data = {
       siteId,
@@ -92,7 +92,7 @@ export const updateArticle = async (req: Request<{ id: string }>, res: Response,
 export const deleteArticle = async (req: Request<{ id: string }>, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const siteId = (req as any).siteId!;
+    const siteId = (req as any).currentSiteId!;
     const userId = (req as any).userId;
     await articlesService.deleteArticle(id, siteId, userId);
     res.json(successResponse(null, '删除成功'));

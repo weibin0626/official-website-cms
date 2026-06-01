@@ -4,6 +4,7 @@ export interface Banner {
   id: string;
   siteId: string;
   title: string;
+  subtitle: string | null;
   imageUrl: string;
   linkUrl: string | null;
   sort: number;
@@ -14,6 +15,7 @@ export interface Banner {
 
 export interface CreateBannerParams {
   title: string;
+  subtitle?: string;
   imageUrl: string;
   linkUrl?: string;
   sort?: number;
@@ -22,6 +24,7 @@ export interface CreateBannerParams {
 
 export interface UpdateBannerParams {
   title?: string;
+  subtitle?: string;
   imageUrl?: string;
   linkUrl?: string;
   sort?: number;

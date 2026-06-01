@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -17,6 +17,7 @@ model Site {
   primaryColor   String   @default("#1a3a6b")
   secondaryColor String?
   phone          String?
+  email          String?
   address        String?
   icp            String?
   police         String?
@@ -227,6 +228,7 @@ model Banner {
   id        String   @id @default(uuid())
   siteId    String
   title     String
+  subtitle  String?  @default("")
   imageUrl  String
   linkUrl   String?
   sort      Int      @default(0)
@@ -315,6 +317,7 @@ model QuickLink {
   siteId    String
   name      String
   url       String
+  color     String?  @default("#3b82f6")
   icon      String?
   sort      Int      @default(0)
   isActive  Boolean  @default(true)

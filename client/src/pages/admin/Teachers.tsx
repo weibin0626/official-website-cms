@@ -10,13 +10,19 @@ import {
   TextField,
   Switch,
   FormControlLabel,
-  Chip,
   AlertColor,
+  Chip,
+  Card,
+  CardContent,
+  CardActions,
+  Grid,
+  Tooltip,
+  Avatar,
+  IconButton,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import DataTable, { Column } from '../../components/Common/DataTable';
 import ConfirmDialog from '../../components/Common/ConfirmDialog';
 import Toast, { useToast } from '../../components/Common/Toast';
 import * as teachersApi from '../../api/teachers';
@@ -137,80 +143,137 @@ const TeachersPage: React.FC = () => {
     }
   };
 
-  const columns: Column<Teacher>[] = [
-    {
-      id: 'photo',
-      label: '照片',
-      width: 80,
-      render: (row) =>
-        row.photo ? (
-          <Box component="img" src={row.photo} alt={row.name} sx={{ width: 40, height: 40, objectFit: 'cover', borderRadius: '50%' }} onError={(e: any) => { e.target.style.display = 'none'; }} />
-        ) : (
-          <Box sx={{ width: 40, height: 40, borderRadius: '50%', bgcolor: 'grey.200', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: 'grey.500' }}>
-            {row.name.charAt(0)}
-          </Box>
-        ),
-    },
-    { id: 'name', label: '姓名', width: 120 },
-    { id: 'title', label: '职称', width: 120, render: (row) => row.title || '-' },
-    { id: 'subject', label: '学科', width: 120, render: (row) => row.subject || '-' },
-    { id: 'sort', label: '排序', width: 80 },
-    {
-      id: 'isActive',
-      label: '状态',
-      width: 80,
-      render: (row) => (
-        <Chip label={row.isActive ? '启用' : '禁用'} size="small" color={row.isActive ? 'success' : 'default'} variant="outlined" />
-      ),
-    },
-    {
-      id: 'actions',
-      label: '操作',
-      width: 220,
-      align: 'left',
-      render: (row) => (
-        <Box sx={{ display: 'flex', gap: 0.5 }}>
-          <Button size="small" startIcon={<EditIcon />} onClick={() => handleOpenEdit(row)}>编辑</Button>
-          <Button size="small" color={row.isActive ? 'warning' : 'success'} onClick={() => handleToggleActive(row)}>
-            {row.isActive ? '禁用' : '启用'}
-          </Button>
-          <Button size="small" color="error" startIcon={<DeleteIcon />} onClick={() => setDeleteConfirm({ open: true, teacher: row })}>删除</Button>
-        </Box>
-      ),
-    },
-  ];
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+        <Typography>加载中...</Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h5" fontWeight={600}>师资管理</Typography>
         <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenCreate}>新增教师</Button>
       </Box>
 
-      <DataTable
-        columns={columns}
-        rows={teachers}
-        total={teachers.length}
-        page={1}
-        pageSize={100}
-        loading={loading}
-        searchable={false}
-        onPageChange={() => {}}
-        onPageSizeChange={() => {}}
-        getRowId={(row) => row.id}
-      />
+      {teachers.length === 0 ? (
+        <Box sx={{ textAlign: 'center', py: 5 }}>
+          <Typography color="text.secondary">暂无师资信息，点击上方按钮新增</Typography>
+        </Box>
+      ) : (
+        <Grid container spacing={3}>
+          {teachers.map((teacher) => (
+            <Grid item xs={12} sm={6} md={3} key={teacher.id}>
+              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <Box
+                  component="img"
+                  src={teacher.photo || ''}
+                  alt={teacher.name}
+                  sx={{
+                    width: '100%',
+                    height: 150,
+                    objectFit: 'cover',
+                    bgcolor: 'grey.100',
+                  }}
+                  onError={(e: any) => { e.target.style.display = 'none'; }}
+                />
+                {!teacher.photo && (
+                  <Box sx={{ height: 150, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'grey.100' }}>
+                    <Avatar
+                      sx={{ width: 80, height: 80, fontSize: 32, bgcolor: 'primary.main' }}
+                    >
+                      {teacher.name.charAt(0)}
+                    </Avatar>
+                  </Box>
+                )}
+                <CardContent sx={{ flexGrow: 1 }}>
+                  <Typography variant="h6" gutterBottom>
+                    {teacher.name}
+                  </Typography>
+                  <Typography variant="body2" color="primary" gutterBottom>
+                    {teacher.title || '暂无职称'}
+                  </Typography>
+                  {teacher.subject && (
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      学科: {teacher.subject}
+                    </Typography>
+                  )}
+                  {teacher.years !== null && teacher.years !== undefined && (
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      教龄: {teacher.years}年
+                    </Typography>
+                  )}
+                  {teacher.bio && (
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                      }}
+                    >
+                      {teacher.bio}
+                    </Typography>
+                  )}
+                  <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Chip
+                      label={teacher.isActive ? '启用' : '禁用'}
+                      size="small"
+                      color={teacher.isActive ? 'success' : 'default'}
+                      variant="outlined"
+                    />
+                    <Typography variant="caption" color="text.secondary">
+                      排序: {teacher.sort}
+                    </Typography>
+                  </Box>
+                </CardContent>
+                <CardActions sx={{ justifyContent: 'flex-end', px: 2, pb: 2 }}>
+                  <Tooltip title={teacher.isActive ? '禁用' : '启用'}>
+                    <Button
+                      size="small"
+                      color={teacher.isActive ? 'warning' : 'success'}
+                      onClick={() => handleToggleActive(teacher)}
+                    >
+                      {teacher.isActive ? '禁用' : '启用'}
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title="编辑">
+                    <IconButton size="small" onClick={() => handleOpenEdit(teacher)}>
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="删除">
+                    <IconButton
+                      size="small"
+                      color="error"
+                      onClick={() => setDeleteConfirm({ open: true, teacher })}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </CardActions>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      )}
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>{editTeacher ? '编辑教师' : '新增教师'}</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
-            <TextField label="姓名" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required size="small" />
-            <TextField label="职称" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} size="small" placeholder="如：教授、副教授" />
-            <TextField label="学科" value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} size="small" />
-            <TextField label="教龄(年)" type="number" value={form.years} onChange={(e) => setForm({ ...form, years: parseInt(e.target.value, 10) || 0 })} size="small" />
-            <TextField label="照片地址" value={form.photo} onChange={(e) => setForm({ ...form, photo: e.target.value })} size="small" placeholder="可选，照片URL" />
-            <TextField label="简介" value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} size="small" multiline rows={3} />
-            <TextField label="排序" type="number" value={form.sort} onChange={(e) => setForm({ ...form, sort: parseInt(e.target.value, 10) || 0 })} size="small" />
+            <TextField label="姓名" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required size="small" fullWidth />
+            <TextField label="职称" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} size="small" fullWidth placeholder="如：教授、副教授" />
+            <TextField label="学科" value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} size="small" fullWidth />
+            <TextField label="教龄(年)" type="number" value={form.years} onChange={(e) => setForm({ ...form, years: parseInt(e.target.value, 10) || 0 })} size="small" fullWidth />
+            <TextField label="照片地址" value={form.photo} onChange={(e) => setForm({ ...form, photo: e.target.value })} size="small" fullWidth placeholder="可选，照片URL" />
+            <TextField label="简介" value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} size="small" fullWidth multiline rows={3} />
+            <TextField label="排序" type="number" value={form.sort} onChange={(e) => setForm({ ...form, sort: parseInt(e.target.value, 10) || 0 })} size="small" fullWidth />
             <FormControlLabel control={<Switch checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} />} label="启用" />
           </Box>
         </DialogContent>

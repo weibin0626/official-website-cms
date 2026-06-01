@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import * as authApi from '../api/auth';
 import type { CurrentUser, LoginResult } from '../api/auth';
+import { useSiteStore } from './siteStore';
 
 interface AuthState {
   token: string | null;
@@ -43,6 +44,24 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         user,
         permissions: user.permissions,
       });
+
+      // Sync sites to siteStore
+      // Priority: localStorage (user's last switch) > user.currentSiteId (from JWT) > first site
+      const siteStore = useSiteStore.getState();
+      if (user.sites && user.sites.length > 0) {
+        const sites = user.sites as any[];
+        const storedSiteId = localStorage.getItem('currentSiteId');
+        const currentSiteId = (storedSiteId && sites.find((s: any) => s.id === storedSiteId))
+          ? storedSiteId
+          : (user.currentSiteId || sites[0]?.id || null);
+        const currentSite = sites.find((s: any) => s.id === currentSiteId) || sites[0] || null;
+        useSiteStore.setState({
+          sites,
+          currentSite,
+          currentSiteId,
+        });
+        localStorage.setItem('currentSiteId', currentSiteId);
+      }
 
       return result;
     } catch (error: any) {
@@ -90,6 +109,24 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isAuthenticated: true,
         permissions: user.permissions,
       });
+
+      // Sync sites to siteStore
+      // Priority: localStorage (user's last switch) > user.currentSiteId (from JWT) > first site
+      if (user.sites && user.sites.length > 0) {
+        const sites = user.sites as any[];
+        const storedSiteId = localStorage.getItem('currentSiteId');
+        const currentSiteId = (storedSiteId && sites.find((s: any) => s.id === storedSiteId))
+          ? storedSiteId
+          : (user.currentSiteId || sites[0]?.id || null);
+        const currentSite = sites.find((s: any) => s.id === currentSiteId) || sites[0] || null;
+        useSiteStore.setState({
+          sites,
+          currentSite,
+          currentSiteId,
+        });
+        localStorage.setItem('currentSiteId', currentSiteId);
+      }
+
       return true;
     } catch {
       localStorage.removeItem('token');

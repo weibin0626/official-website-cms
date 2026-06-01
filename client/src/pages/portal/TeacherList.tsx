@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import HomeIcon from '@mui/icons-material/Home';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import * as portalApi from '../../api/portal';
-import { DEFAULT_SITE_ID, PORTAL_MAX_WIDTH } from '../../utils/constants';
+import { PORTAL_MAX_WIDTH } from '../../utils/constants';
 
 /** Breadcrumb */
 const Breadcrumb: React.FC<{ items: Array<{ label: string; to?: string }> }> = ({ items }) => (
@@ -40,7 +40,8 @@ const TeacherListPage: React.FC = () => {
   useEffect(() => {
     const loadTeachers = async () => {
       try {
-        const result = await portalApi.getTeachers(DEFAULT_SITE_ID || undefined);
+        // No siteId param: backend resolves site via X-Site-Host header
+        const result = await portalApi.getTeachers();
         setTeachers(result);
       } catch (err) {
         console.error('Failed to load teachers:', err);

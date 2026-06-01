@@ -79,7 +79,7 @@ const DashboardPage: React.FC = () => {
     const fetchData = async () => {
       try {
         const [sitesList, usersPaginated, articlesPaginated] = await Promise.all([
-          sitesApi.listSites(),
+          sitesApi.listSites('ACTIVE'), // 只统计启用的站点
           usersApi.listUsers({ page: 1, pageSize: 1 }),
           articlesApi.listArticles({ page: 1, pageSize: 1 }).catch(() => ({ list: [], total: 0 })),
         ]);

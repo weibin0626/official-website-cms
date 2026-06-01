@@ -395,10 +395,15 @@ const PortalLayout: React.FC = () => {
   useEffect(() => {
     const loadLayoutData = async () => {
       try {
-        const data = await portalApi.getHomeData(DEFAULT_SITE_ID || undefined);
+        const data = await portalApi.getHomeData();
         setSite(data.site);
         setNavTree(data.navTree || []);
         setFriendLinks(data.friendLinks || []);
+        
+        // 动态设置页面 title 为学校名称
+        if (data.site?.nameCn) {
+          document.title = data.site.nameCn;
+        }
       } catch (err) {
         console.error('Failed to load portal layout data:', err);
       }

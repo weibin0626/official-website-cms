@@ -106,7 +106,7 @@ const DashboardPage: React.FC = () => {
           userTrend: '↑8%',
         });
 
-        // Fetch recent articles and notices in parallel
+        // Fetch recent articles twice (for "最新文章" and "最新动态" sections)
         try {
           const [articlesRes, noticesRes] = await Promise.all([
             articlesApi.listArticles({ page: 1, pageSize: 5 }).catch(() => ({ list: [], total: 0 })),
